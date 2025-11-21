@@ -1,0 +1,31 @@
+# Import all models here for Alembic to detect them
+from .user import User, UserLocation, AvailabilitySchedule
+from .friendship import Friendship
+from .meeting import Meeting, MeetingParticipant
+from .group import Group, GroupMember
+from .points import PointsTransaction, StoreItem, UserPurchase
+from .mission import Mission, UserMission
+from .event import Event, EventParticipant
+from .location import Location, LocationReview, LocationCampaign
+
+__all__ = [
+    "User",
+    "UserLocation",
+    "AvailabilitySchedule",
+    "Friendship",
+    "Meeting",
+    "MeetingParticipant",
+    "Group",
+    "GroupMember",
+    "PointsTransaction",
+    "StoreItem",
+    "UserPurchase",
+    "Mission",
+    "UserMission",
+    "Event",
+    "EventParticipant",
+    "Location",
+    "LocationReview",
+    "LocationCampaign",
+]
+
