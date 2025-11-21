@@ -28,6 +28,37 @@ Table User {
   }
 }
 
+/////////////////////////////////////////////////////////////
+// ROLES (to distinguish user types: regular, organizer, venue_owner, admin)
+/////////////////////////////////////////////////////////////
+
+Table Role {
+  id                    smallint [pk, increment]
+  name                  varchar(50) [unique] // user, organizer, venue_owner, admin
+  description           text [null]
+  created_at            datetime
+  updated_at            datetime
+}
+
+Table UserRole { // M:N User–Role (users can have multiple roles)
+  user_id               bigint
+  role_id               smallint
+  assigned_at           datetime
+  status                varchar(20) [default: 'active'] // active, revoked
+
+  Indexes {
+    (user_id, role_id) [pk]
+    (role_id)
+  }
+}
+
+Ref: UserRole.user_id > User.id [delete: cascade]
+Ref: UserRole.role_id > Role.id [delete: cascade]
+
+/////////////////////////////////////////////////////////////
+// USER LOCATION TRACKING
+/////////////////////////////////////////////////////////////
+
 Table UserLocation { // Current location (not history)
   id                    bigint [pk, increment]
   user_id               bigint [unique]
@@ -42,6 +73,27 @@ Table UserLocation { // Current location (not history)
 }
 
 Ref: UserLocation.user_id > User.id [delete: cascade]
+
+Table UserLocationHistory { // Historical location data for travel visualization
+  id                    bigint [pk, increment]
+  user_id               bigint
+  recorded_at           datetime
+  latitude              decimal(9,6)
+  longitude             decimal(9,6)
+  altitude_m            decimal(8,2) [null]
+  accuracy_m            float [null]
+  speed_mps             float [null]
+  heading_deg           float [null]
+  source                varchar(20) [default: 'gps'] // gps, wifi, network, manual
+  created_at            datetime
+
+  Indexes {
+    (user_id, recorded_at)
+    (recorded_at)
+  }
+}
+
+Ref: UserLocationHistory.user_id > User.id [delete: cascade]
 
 /////////////////////////////////////////////////////////////
 // FRIENDSHIPS

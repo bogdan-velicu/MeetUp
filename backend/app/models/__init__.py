@@ -1,5 +1,7 @@
 # Import all models here for Alembic to detect them
 from .user import User, UserLocation, AvailabilitySchedule
+from .user_location_history import UserLocationHistory
+from .role import Role, UserRole
 from .friendship import Friendship
 from .meeting import Meeting, MeetingParticipant
 from .group import Group, GroupMember
@@ -11,7 +13,10 @@ from .location import Location, LocationReview, LocationCampaign
 __all__ = [
     "User",
     "UserLocation",
+    "UserLocationHistory",
     "AvailabilitySchedule",
+    "Role",
+    "UserRole",
     "Friendship",
     "Meeting",
     "MeetingParticipant",
