@@ -1,5 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from app.core.config import settings
+from app.core.middleware import exception_handler, general_exception_handler
+from app.core.exceptions import MeetUpException
+from app.core.logging_config import setup_logging
+
+logger = setup_logging()
 
 app = FastAPI(
     title="MeetUp API",
@@ -10,15 +17,19 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Exception handlers
+app.add_exception_handler(MeetUpException, exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
 @app.get("/")
 async def root():
-    return {"message": "MeetUp API"}
+    return {"message": "MeetUp API", "version": "1.0.0"}
 
 @app.get("/health")
 async def health():
