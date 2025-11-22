@@ -80,14 +80,21 @@ This document tracks the development progress for the MeetUp! application, organ
   - [x] Add token storage and refresh logic
   - [x] Create protected route wrapper
 
-- [ ] **Map View**
-  - [ ] Integrate Google Maps SDK
-  - [ ] Create `MapView` component
-  - [ ] Display current user location
+- [x] **Map View**
+  - [x] Integrate Google Maps SDK
+  - [x] Create `MapView` component
+  - [x] Display current user location
   - [ ] Display friends' locations with markers
   - [ ] Show friend names and availability status on markers
-  - [ ] Implement location permission handling
+  - [x] Implement location permission handling
   - [ ] Add location update mechanism (background/foreground)
+
+- [x] **Navigation & UI Structure**
+  - [x] Create floating bottom navigation bar with rounded edges
+  - [x] Create main navigation screen with tabs (Chat, Friends, Map, Events, Profile)
+  - [x] Implement MapView screen with location services
+  - [x] Create placeholder screens for all tabs
+  - [x] Update route generator for new navigation structure
 
 - [ ] **Friends List**
   - [ ] Create `FriendsListView` component

@@ -3,7 +3,7 @@ import 'route_names.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/splash/splash_screen.dart';
-import '../../features/home/home_screen.dart';
+import '../../features/navigation/main_navigation_screen.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -18,7 +18,7 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       
       case RouteNames.home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) => const MainNavigationScreen());
       
       default:
         return _errorRoute();

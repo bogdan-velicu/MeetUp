@@ -36,7 +36,7 @@ class _MapViewWidgetState extends State<MapViewWidget> {
       myLocationEnabled: true,
       myLocationButtonEnabled: true,
       mapType: MapType.normal,
-      zoomControlsEnabled: true,
+      zoomControlsEnabled: false, // We'll use custom controls
       onMapCreated: (GoogleMapController controller) {
         _mapController = controller;
         // Apply custom map style if needed
