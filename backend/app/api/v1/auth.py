@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.services.auth_service import AuthService
-from app.schemas.auth import UserRegister, UserLogin, Token, UserResponse
+from app.schemas.auth import UserRegister, UserLogin, Token, UserResponse, TokenRefresh
 from app.core.dependencies import get_current_user
 from app.models.user import User
 
@@ -40,3 +40,13 @@ async def get_me(
 ):
     """Get current authenticated user."""
     return UserResponse.model_validate(current_user)
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Refresh access token."""
+    auth_service = AuthService(db)
+    token = auth_service.refresh_token(current_user.id)
+    return token

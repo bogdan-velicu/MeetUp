@@ -82,3 +82,20 @@ class AuthService:
         if not user:
             return None
         return UserResponse.model_validate(user)
+    
+    def refresh_token(self, user_id: int) -> Token:
+        """Refresh access token for a user."""
+        user = self.user_repo.get_by_id(user_id)
+        if not user:
+            raise UnauthorizedError("User not found")
+        
+        if not user.is_active:
+            raise UnauthorizedError("User account is inactive")
+        
+        # Create new access token
+        access_token = create_access_token(
+            data={"sub": str(user.id), "email": user.email},
+            expires_delta=timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        
+        return Token(access_token=access_token)
