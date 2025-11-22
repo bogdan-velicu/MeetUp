@@ -4,6 +4,7 @@ import '../friends/friends_screen.dart';
 import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
 import '../events/events_screen.dart';
+import 'widgets/animated_bottom_nav_item.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -26,80 +27,127 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: Stack(
+        children: [
+          // Full screen content
+          IndexedStack(
+            index: _currentIndex,
+            children: _screens,
+          ),
+          // Floating bottom navigation
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildFloatingBottomNav(),
+          ),
+        ],
       ),
-      bottomNavigationBar: _buildFloatingBottomNav(),
     );
   }
 
   Widget _buildFloatingBottomNav() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: Theme.of(context).primaryColor,
-          unselectedItemColor: Colors.grey,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(_currentIndex == 0 ? Icons.chat : Icons.chat_outlined),
-              label: 'Chat',
+    final activeColor = Theme.of(context).primaryColor;
+    final inactiveColor = Colors.grey.withOpacity(0.6);
+
+    return SafeArea(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.0, end: 1.0),
+        duration: const Duration(milliseconds: 300),
+        builder: (context, value, child) {
+          return Transform.translate(
+            offset: Offset(0, 20 * (1 - value)),
+            child: Opacity(
+              opacity: value,
+              child: child,
             ),
-            BottomNavigationBarItem(
-              icon: Icon(_currentIndex == 1 ? Icons.people : Icons.people_outline),
-              label: 'Friends',
-            ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.map,
-                  color: Colors.white,
-                  size: 24,
-                ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 5),
               ),
-              label: 'Map',
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  AnimatedBottomNavItem(
+                    icon: Icons.chat_outlined,
+                    activeIcon: Icons.chat,
+                    label: 'Chat',
+                    isActive: _currentIndex == 0,
+                    isCenter: false,
+                    onTap: () => _onTabTapped(0),
+                    activeColor: activeColor,
+                    inactiveColor: inactiveColor,
+                  ),
+                  AnimatedBottomNavItem(
+                    icon: Icons.people_outline,
+                    activeIcon: Icons.people,
+                    label: 'Friends',
+                    isActive: _currentIndex == 1,
+                    isCenter: false,
+                    onTap: () => _onTabTapped(1),
+                    activeColor: activeColor,
+                    inactiveColor: inactiveColor,
+                  ),
+                  AnimatedBottomNavItem(
+                    icon: Icons.map_outlined,
+                    activeIcon: Icons.map,
+                    label: 'Map',
+                    isActive: _currentIndex == 2,
+                    isCenter: true,
+                    onTap: () => _onTabTapped(2),
+                    activeColor: activeColor,
+                    inactiveColor: inactiveColor,
+                  ),
+                  AnimatedBottomNavItem(
+                    icon: Icons.event_outlined,
+                    activeIcon: Icons.event,
+                    label: 'Events',
+                    isActive: _currentIndex == 3,
+                    isCenter: false,
+                    onTap: () => _onTabTapped(3),
+                    activeColor: activeColor,
+                    inactiveColor: inactiveColor,
+                  ),
+                  AnimatedBottomNavItem(
+                    icon: Icons.person_outline,
+                    activeIcon: Icons.person,
+                    label: 'Profile',
+                    isActive: _currentIndex == 4,
+                    isCenter: false,
+                    onTap: () => _onTabTapped(4),
+                    activeColor: activeColor,
+                    inactiveColor: inactiveColor,
+                  ),
+                ],
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(_currentIndex == 3 ? Icons.event : Icons.event_outlined),
-              label: 'Events',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(_currentIndex == 4 ? Icons.person : Icons.person_outline),
-              label: 'Profile',
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  void _onTabTapped(int index) {
+    if (_currentIndex != index) {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
   }
 }
 
