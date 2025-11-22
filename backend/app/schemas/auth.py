@@ -5,13 +5,13 @@ from datetime import datetime
 class UserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=60)
     email: EmailStr
-    password: str = Field(..., min_length=8)
+    password: str = Field(..., min_length=8)  # No max_length - we handle long passwords
     full_name: str = Field(..., min_length=1, max_length=120)
     phone_number: Optional[str] = Field(None, max_length=30)
 
 class UserLogin(BaseModel):
     email: EmailStr
-    password: str
+    password: str  # No max_length - we handle long passwords
 
 class Token(BaseModel):
     access_token: str
