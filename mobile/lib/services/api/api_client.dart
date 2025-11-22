@@ -1,12 +1,18 @@
 import 'package:dio/dio.dart';
+import '../../core/config/env_config.dart';
 import '../../core/constants/app_constants.dart';
 
 class ApiClient {
   late final Dio _dio;
   
   ApiClient() {
+    // Use API_BASE_URL from .env if available, otherwise fallback to AppConstants
+    final baseUrl = EnvConfig.apiBaseUrl.isNotEmpty 
+        ? EnvConfig.apiBaseUrl 
+        : AppConstants.baseUrl;
+    
     _dio = Dio(BaseOptions(
-      baseUrl: '${AppConstants.baseUrl}${AppConstants.apiVersion}',
+      baseUrl: '$baseUrl${AppConstants.apiVersion}',
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {

@@ -7,6 +7,13 @@ class EnvConfig {
   
   static String get googleMapsApiKey => dotenv.env['GOOGLE_CLOUD_KEY'] ?? '';
   
-  static String get apiBaseUrl => dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:8000';
+  static String get apiBaseUrl {
+    final url = dotenv.env['API_BASE_URL'];
+    if (url != null && url.isNotEmpty) {
+      return url;
+    }
+    // Fallback - you can change this to your computer's IP for testing
+    return 'http://192.168.1.143:8000';
+  }
 }
 
