@@ -25,15 +25,15 @@ This document tracks the development progress for the MeetUp! application, organ
   - [x] Set up CORS configuration
   - [x] Create logging configuration
 
-- [ ] **Mobile App Initialization**
+- [x] **Mobile App Initialization**
   - [x] Set up Flutter project structure (feature-based)
   - [x] Install core dependencies (HTTP client, state management, etc.)
-  - [ ] Configure app theme and design system
-  - [ ] Set up navigation structure
+  - [x] Configure app theme and design system
+  - [x] Set up navigation structure
   - [x] Create base API service client
-  - [ ] Implement authentication state management
-  - [ ] Configure Google Maps SDK
-  - [ ] Set up Firebase Cloud Messaging (FCM)
+  - [x] Implement authentication state management
+  - [x] Configure Google Maps SDK
+  - [x] Set up Firebase Cloud Messaging (FCM)
 
 ---
 
@@ -44,13 +44,13 @@ This document tracks the development progress for the MeetUp! application, organ
 **Goal**: Infrastructure setup and friends visualization on map.
 
 #### Backend Tasks
-- [ ] **Authentication System**
-  - [ ] Implement user registration (email + password)
-  - [ ] Implement user login with JWT tokens
-  - [ ] Create password hashing service
+- [x] **Authentication System**
+  - [x] Implement user registration (email + password)
+  - [x] Implement user login with JWT tokens
+  - [x] Create password hashing service
   - [ ] Implement token refresh mechanism
-  - [ ] Create authentication middleware
-  - [ ] Add role assignment on user registration (default: "user")
+  - [x] Create authentication middleware
+  - [x] Add role assignment on user registration (default: "user")
 
 - [ ] **Location Services**
   - [ ] Create `LocationService` for location management
@@ -73,12 +73,12 @@ This document tracks the development progress for the MeetUp! application, organ
   - [ ] Test database migrations
 
 #### Frontend Tasks
-- [ ] **Authentication UI**
-  - [ ] Create login screen
-  - [ ] Create registration screen
-  - [ ] Implement authentication state management
-  - [ ] Add token storage and refresh logic
-  - [ ] Create protected route wrapper
+- [x] **Authentication UI**
+  - [x] Create login screen
+  - [x] Create registration screen
+  - [x] Implement authentication state management
+  - [x] Add token storage and refresh logic
+  - [x] Create protected route wrapper
 
 - [ ] **Map View**
   - [ ] Integrate Google Maps SDK
