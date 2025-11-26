@@ -41,29 +41,11 @@ class _AddFriendScreenState extends State<AddFriendScreen> {
     });
 
     try {
-      // Ensure auth token is set before searching
-      final token = await _authService.getToken();
-      if (token != null) {
-        _apiClient.setAuthToken(token);
-      }
-      
-      // Search for users by username or email
-      final response = await _apiClient.get(
-        '/users/search',
-        queryParameters: {'q': query.trim()},
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _searchResults = List<Map<String, dynamic>>.from(response.data);
-          _isSearching = false;
-        });
-      } else {
-        setState(() {
-          _error = 'Search failed';
-          _isSearching = false;
-        });
-      }
+      final results = await _friendsService.searchUsers(query.trim());
+      setState(() {
+        _searchResults = results;
+        _isSearching = false;
+      });
     } catch (e) {
       setState(() {
         _error = 'Error searching users: $e';

@@ -8,15 +8,12 @@ class FriendshipRepository:
     def __init__(self, db: Session):
         self.db = db
     
-    def create(self, user_id: int, friend_id: int, is_close_friend: bool = False) -> Friendship:
+    def create(self, user_id: int, friend_id: int, status: str = "pending", is_close_friend: bool = False) -> Friendship:
         """Create a new friendship."""
-        # Ensure user_id < friend_id for consistency
-        if user_id > friend_id:
-            user_id, friend_id = friend_id, user_id
-        
         friendship = Friendship(
             user_id=user_id,
             friend_id=friend_id,
+            status=status,
             is_close_friend=is_close_friend
         )
         self.db.add(friendship)
@@ -37,15 +34,15 @@ class FriendshipRepository:
         ).first()
         return friendship
     
-    def get_friends(self, user_id: int, include_close_only: bool = False) -> List[User]:
-        """Get all friends of a user."""
+    def get_friends(self, user_id: int, include_close_only: bool = False, status_filter: str = "accepted") -> List[User]:
+        """Get all friends of a user with specific status."""
         query = self.db.query(User).join(
             Friendship,
             or_(
                 and_(Friendship.user_id == user_id, User.id == Friendship.friend_id),
                 and_(Friendship.friend_id == user_id, User.id == Friendship.user_id)
             )
-        )
+        ).filter(Friendship.status == status_filter)
         
         if include_close_only:
             query = query.filter(
@@ -75,4 +72,23 @@ class FriendshipRepository:
             self.db.refresh(friendship)
             return friendship
         return None
+    
+    def update_friendship_status(self, user_id: int, friend_id: int, status: str) -> Optional[Friendship]:
+        """Update friendship status."""
+        friendship = self.get_friendship(user_id, friend_id)
+        if friendship:
+            friendship.status = status
+            self.db.commit()
+            self.db.refresh(friendship)
+            return friendship
+        return None
+    
+    def get_pending_requests(self, user_id: int) -> List[Friendship]:
+        """Get pending friend requests for a user (requests sent TO this user)."""
+        return self.db.query(Friendship).filter(
+            and_(
+                Friendship.friend_id == user_id,
+                Friendship.status == "pending"
+            )
+        ).all()
 

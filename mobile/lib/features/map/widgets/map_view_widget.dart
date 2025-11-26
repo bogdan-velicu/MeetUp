@@ -65,8 +65,8 @@ class _MapViewWidgetState extends State<MapViewWidget> {
             )
           : MapConfig.defaultCameraPosition,
       markers: widget.markers ?? {},
-      myLocationEnabled: true,
-      myLocationButtonEnabled: false, // Disable default button
+            myLocationEnabled: false, // Disable default location marker
+            myLocationButtonEnabled: false, // Disable default button
       mapType: MapType.normal,
       zoomControlsEnabled: false, // We'll use custom controls
       compassEnabled: false, // Disable compass

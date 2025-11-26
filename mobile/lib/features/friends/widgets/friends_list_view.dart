@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/friend.dart';
 import '../../../services/friends/friends_service.dart';
+import 'friend_options_bottom_sheet.dart';
 
 class FriendsListView extends StatefulWidget {
   const FriendsListView({super.key});
@@ -20,6 +21,17 @@ class _FriendsListViewState extends State<FriendsListView> {
   void initState() {
     super.initState();
     _loadFriends();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh friends list when screen becomes visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadFriends();
+      }
+    });
   }
 
   Future<void> _loadFriends() async {
@@ -217,11 +229,15 @@ class _FriendsListViewState extends State<FriendsListView> {
   }
 
   void _onFriendTap(Friend friend) {
-    // TODO: Navigate to friend details or show options
     showModalBottomSheet(
       context: context,
-      builder: (context) => _FriendOptionsBottomSheet(friend: friend),
-    );
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FriendOptionsBottomSheet(friend: friend),
+    ).then((_) {
+      // Refresh friends list when bottom sheet is closed
+      _loadFriends();
+    });
   }
 }
 
@@ -348,118 +364,3 @@ class _FriendListItem extends StatelessWidget {
   }
 }
 
-class _FriendOptionsBottomSheet extends StatelessWidget {
-  final Friend friend;
-
-  const _FriendOptionsBottomSheet({required this.friend});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Friend info header
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: _getStatusColor(friend.availabilityStatus),
-                child: Text(
-                  friend.fullName.isNotEmpty 
-                      ? friend.fullName[0].toUpperCase()
-                      : friend.username[0].toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      friend.fullName.isNotEmpty ? friend.fullName : friend.username,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(friend.availabilityStatus),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          friend.availabilityStatus.toUpperCase(),
-                          style: TextStyle(
-                            color: _getStatusColor(friend.availabilityStatus),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          
-          // Action buttons
-          Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.message),
-                title: const Text('Send Message'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Navigate to chat with friend
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.location_on),
-                title: const Text('View on Map'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Navigate to map and focus on friend's location
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.event),
-                title: const Text('Invite to Meet'),
-                onTap: () {
-                  Navigator.pop(context);
-                  // TODO: Create meeting invitation
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'available':
-        return Colors.green;
-      case 'busy':
-        return Colors.red;
-      case 'away':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
-  }
-}

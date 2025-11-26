@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 import 'widgets/map_view_widget.dart';
-import 'widgets/friend_map_bottom_sheet.dart';
+import 'widgets/friend_info_popup.dart';
+import 'widgets/custom_marker_generator.dart';
 import '../../services/location/location_service.dart';
 import '../../services/friends/friends_service.dart';
+import '../../services/auth/auth_provider.dart';
 import '../../models/friend.dart';
 
 class MapScreen extends StatefulWidget {
@@ -29,6 +32,17 @@ class _MapScreenState extends State<MapScreen> {
     _initializeMapData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh friends locations when screen becomes visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadFriendsLocations();
+      }
+    });
+  }
+
   Future<void> _initializeMapData() async {
     await _getCurrentLocation();
     await _loadFriendsLocations();
@@ -42,7 +56,7 @@ class _MapScreenState extends State<MapScreen> {
           _currentPosition = LatLng(position.latitude, position.longitude);
           _isLoading = false;
         });
-        _updateMarkers();
+        await _updateMarkers();
       } else {
         setState(() {
           _error = 'Could not get current location';
@@ -63,7 +77,7 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {
         _friends = friends;
       });
-      _updateMarkers();
+      await _updateMarkers();
     } catch (e) {
       debugPrint('Error loading friends locations: $e');
       setState(() {
@@ -72,60 +86,53 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  void _updateMarkers() {
+  Future<void> _updateMarkers() async {
     final Set<Marker> markers = {};
 
-    // Add current user marker
+    // Add current user marker with custom design
     if (_currentPosition != null) {
+      final currentUserMarker = await CustomMarkerGenerator.createCurrentUserMarker(
+        initials: 'ME', // You can get this from user profile
+      );
+      
       markers.add(
         Marker(
           markerId: const MarkerId('current_user'),
           position: _currentPosition!,
-          infoWindow: const InfoWindow(title: 'My Location'),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          icon: currentUserMarker,
+          anchor: const Offset(0.5, 0.5),
+          onTap: () => _onCurrentUserMarkerTap(),
         ),
       );
     }
 
-    // Add friend markers
+    // Add friend markers with custom profile pictures
     for (final friend in _friends) {
       final position = LatLng(
         friend.latitude,
         friend.longitude,
       );
 
-      double hue;
-      switch (friend.availabilityStatus.toLowerCase()) {
-        case 'available':
-          hue = BitmapDescriptor.hueGreen;
-          break;
-        case 'busy':
-          hue = BitmapDescriptor.hueRed;
-          break;
-        case 'away':
-          hue = BitmapDescriptor.hueOrange;
-          break;
-        default:
-          hue = BitmapDescriptor.hueViolet;
-      }
+      final statusColor = CustomMarkerGenerator.getStatusColor(friend.availabilityStatus);
+      final profileColor = CustomMarkerGenerator.getProfileColor(friend.fullName);
+      
+      final initials = friend.fullName.isNotEmpty 
+          ? friend.fullName[0].toUpperCase()
+          : friend.username[0].toUpperCase();
+
+      final customMarker = await CustomMarkerGenerator.createProfileMarker(
+        initials: initials,
+        statusColor: statusColor,
+        backgroundColor: profileColor,
+      );
 
       markers.add(
         Marker(
           markerId: MarkerId('friend_${friend.userId}'),
           position: position,
-          icon: BitmapDescriptor.defaultMarkerWithHue(hue),
-          infoWindow: InfoWindow(
-            title: friend.fullName,
-            snippet: '${friend.availabilityStatus.toUpperCase()} • ${_formatLastSeen(friend.updatedAt)}',
-          ),
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => FriendMapBottomSheet(friend: friend),
-            );
-          },
+          icon: customMarker,
+          anchor: const Offset(0.5, 0.5),
+          onTap: () => _onFriendMarkerTap(friend),
         ),
       );
     }
@@ -135,20 +142,34 @@ class _MapScreenState extends State<MapScreen> {
     });
   }
 
-  String _formatLastSeen(DateTime updatedAt) {
-    final now = DateTime.now();
-    final difference = now.difference(updatedAt);
-
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else {
-      return '${difference.inDays}d ago';
+  void _onCurrentUserMarkerTap() {
+    if (_currentPosition != null && _mapController != null) {
+      _mapController!.animateToPosition(
+        _currentPosition!,
+        zoom: 16.0,
+      );
     }
   }
+
+  void _onFriendMarkerTap(Friend friend) {
+    // First, animate to the friend's location with zoom
+    final friendPosition = LatLng(friend.latitude, friend.longitude);
+    if (_mapController != null) {
+      _mapController!.animateToPosition(
+        friendPosition,
+        zoom: 16.0,
+      );
+    }
+
+    // Then show the enhanced popup
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FriendInfoPopup(friend: friend),
+    );
+  }
+
 
   void _showAllFriends() {
     if (_friends.isEmpty || _mapController == null) return;
@@ -224,6 +245,19 @@ class _MapScreenState extends State<MapScreen> {
         
         // Floating action buttons
         if (!_isLoading && _error == null && _currentPosition != null) ...[
+          // Logout button (top-left)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            child: FloatingActionButton(
+              mini: true,
+              heroTag: "logout_button",
+              backgroundColor: Colors.red.withOpacity(0.9),
+              onPressed: () => _showLogoutDialog(),
+              child: const Icon(Icons.logout, color: Colors.white),
+            ),
+          ),
+          
           // My location button
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
@@ -266,6 +300,53 @@ class _MapScreenState extends State<MapScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              Icon(Icons.logout, color: Colors.red, size: 28),
+              const SizedBox(width: 12),
+              const Text('Logout'),
+            ],
+          ),
+          content: const Text(
+            'Are you sure you want to logout?\n\nThis will stop location sharing and you\'ll need to login again.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                await authProvider.logout();
+                if (context.mounted) {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

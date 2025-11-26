@@ -27,11 +27,9 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
     });
 
     try {
-      // TODO: Implement getPendingFriendRequests in FriendsService
-      // For now, we'll use a placeholder
-      await Future.delayed(const Duration(seconds: 1));
+      final requests = await _friendsService.getPendingFriendRequests();
       setState(() {
-        _pendingRequests = []; // Placeholder
+        _pendingRequests = requests;
         _isLoading = false;
       });
     } catch (e) {
@@ -56,7 +54,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
         
         // Remove from pending requests
         setState(() {
-          _pendingRequests.removeWhere((request) => request['id'] == friendId);
+          _pendingRequests.removeWhere((request) => request['user_id'] == friendId);
         });
       }
     } catch (e) {
@@ -73,8 +71,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
 
   Future<void> _declineRequest(int friendId, String username) async {
     try {
-      // TODO: Implement decline friend request in FriendsService
-      await _friendsService.removeFriend(friendId);
+      await _friendsService.declineFriendRequest(friendId);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -86,7 +83,7 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
         
         // Remove from pending requests
         setState(() {
-          _pendingRequests.removeWhere((request) => request['id'] == friendId);
+          _pendingRequests.removeWhere((request) => request['user_id'] == friendId);
         });
       }
     } catch (e) {
@@ -180,8 +177,8 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> {
         final request = _pendingRequests[index];
         return _FriendRequestItem(
           request: request,
-          onAccept: () => _acceptRequest(request['id'], request['username']),
-          onDecline: () => _declineRequest(request['id'], request['username']),
+          onAccept: () => _acceptRequest(request['user_id'], request['username']),
+          onDecline: () => _declineRequest(request['user_id'], request['username']),
         );
       },
     );

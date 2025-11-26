@@ -104,4 +104,54 @@ class FriendsService {
       throw Exception('Error removing friend: $e');
     }
   }
+
+  // Get pending friend requests
+  Future<List<Map<String, dynamic>>> getPendingFriendRequests() async {
+    try {
+      await _ensureTokenIsSet(); // Ensure token is set
+      final response = await _apiClient.get('/friends/requests/pending');
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        throw Exception('Failed to load pending requests: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting pending requests: $e');
+    }
+  }
+
+  // Decline friend request
+  Future<void> declineFriendRequest(int friendId) async {
+    try {
+      await _ensureTokenIsSet();
+      
+      final response = await _apiClient.patch('/friends/$friendId/decline');
+
+      if (response.statusCode != 204) {
+        throw Exception('Failed to decline friend request');
+      }
+    } catch (e) {
+      throw Exception('Error declining friend request: $e');
+    }
+  }
+
+  // Search users for adding friends
+  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    try {
+      await _ensureTokenIsSet();
+      final response = await _apiClient.get(
+        '/users/search',
+        queryParameters: {'q': query},
+      );
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        throw Exception('Failed to search users: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error searching users: $e');
+    }
+  }
 }

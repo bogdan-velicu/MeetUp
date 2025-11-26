@@ -19,6 +19,16 @@ async def get_friends(
     friends = friends_service.get_friends(current_user.id, close_friends_only=close_friends_only)
     return friends
 
+@router.get("/requests/pending", response_model=list[dict])
+async def get_pending_friend_requests(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get pending friend requests for the current user."""
+    friends_service = FriendsService(db)
+    requests = friends_service.get_pending_friend_requests(current_user.id)
+    return requests
+
 @router.post("/{friend_id}/request", response_model=FriendshipResponse, status_code=status.HTTP_201_CREATED)
 async def send_friend_request(
     friend_id: int,
@@ -40,6 +50,17 @@ async def accept_friend_request(
     friends_service = FriendsService(db)
     friendship = friends_service.accept_friend_request(current_user.id, friend_id)
     return friendship
+
+@router.patch("/{friend_id}/decline", status_code=status.HTTP_204_NO_CONTENT)
+async def decline_friend_request(
+    friend_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Decline a friend request."""
+    friends_service = FriendsService(db)
+    friends_service.remove_friend(friend_id, current_user.id)  # Remove the pending request
+    return None
 
 @router.delete("/{friend_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_friend(
