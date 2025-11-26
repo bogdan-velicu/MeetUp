@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from app.models.user import User
 from app.core.security import get_password_hash, verify_password
-from typing import Optional
+from typing import Optional, List
 
 class UserRepository:
     def __init__(self, db: Session):
@@ -52,3 +52,23 @@ class UserRepository:
             from datetime import datetime
             user.last_login_at = datetime.utcnow()
             self.db.commit()
+    
+    def search_users(self, query: str, exclude_user_id: Optional[int] = None, limit: int = 20) -> List[User]:
+        """Search users by username or email."""
+        search_filter = or_(
+            User.username.ilike(f"%{query}%"),
+            User.full_name.ilike(f"%{query}%"),
+            User.email.ilike(f"%{query}%")
+        )
+        
+        query_builder = self.db.query(User).filter(
+            and_(
+                search_filter,
+                User.is_active == True
+            )
+        )
+        
+        if exclude_user_id:
+            query_builder = query_builder.filter(User.id != exclude_user_id)
+        
+        return query_builder.limit(limit).all()

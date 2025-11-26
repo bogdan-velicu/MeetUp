@@ -90,8 +90,8 @@ class _MapScreenState extends State<MapScreen> {
     // Add friend markers
     for (final friend in _friends) {
       final position = LatLng(
-        friend.latitude,
-        friend.longitude,
+        double.parse(friend.latitude),
+        double.parse(friend.longitude),
       );
 
       double hue;
@@ -160,12 +160,10 @@ class _MapScreenState extends State<MapScreen> {
     double maxLng = _friends.first.longitude;
 
     for (final friend in _friends) {
-      final lat = friend.latitude;
-      final lng = friend.longitude;
-      minLat = minLat < lat ? minLat : lat;
-      maxLat = maxLat > lat ? maxLat : lat;
-      minLng = minLng < lng ? minLng : lng;
-      maxLng = maxLng > lng ? maxLng : lng;
+      minLat = minLat < friend.latitude ? minLat : friend.latitude;
+      maxLat = maxLat > friend.latitude ? maxLat : friend.latitude;
+      minLng = minLng < friend.longitude ? minLng : friend.longitude;
+      maxLng = maxLng > friend.longitude ? maxLng : friend.longitude;
     }
 
     // Include current position if available

@@ -4,8 +4,15 @@ import '../../core/constants/app_constants.dart';
 
 class ApiClient {
   late final Dio _dio;
+  static ApiClient? _instance;
   
-  ApiClient() {
+  // Singleton pattern
+  factory ApiClient() {
+    _instance ??= ApiClient._internal();
+    return _instance!;
+  }
+  
+  ApiClient._internal() {
     // Use API_BASE_URL from .env if available, otherwise fallback to AppConstants
     final baseUrl = EnvConfig.apiBaseUrl.isNotEmpty 
         ? EnvConfig.apiBaseUrl 

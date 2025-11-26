@@ -4,6 +4,8 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/splash/splash_screen.dart';
 import '../../features/navigation/main_navigation_screen.dart';
+import '../../features/friends/add_friend_screen.dart';
+import '../../features/friends/friend_requests_screen.dart';
 
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -19,6 +21,12 @@ class RouteGenerator {
       
       case RouteNames.home:
         return MaterialPageRoute(builder: (_) => const MainNavigationScreen());
+      
+      case '/add-friend':
+        return MaterialPageRoute(builder: (_) => const AddFriendScreen());
+      
+      case '/friend-requests':
+        return MaterialPageRoute(builder: (_) => const FriendRequestsScreen());
       
       default:
         return _errorRoute();

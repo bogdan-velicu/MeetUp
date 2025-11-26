@@ -10,6 +10,14 @@ class LocationUpdateService {
   final ApiClient _apiClient = ApiClient();
   final AuthService _authService = AuthService();
   
+  // Ensure auth token is set before making requests
+  Future<void> _ensureTokenIsSet() async {
+    final token = await _authService.getToken();
+    if (token != null) {
+      _apiClient.setAuthToken(token);
+    }
+  }
+  
   StreamSubscription<Position>? _locationSubscription;
   Timer? _updateTimer;
   bool _isUpdating = false;
@@ -138,6 +146,8 @@ class LocationUpdateService {
     bool saveHistory = true,
   }) async {
     try {
+      await _ensureTokenIsSet();
+      
       await _apiClient.patch('/location/update', data: {
         'latitude': latitude.toString(),
         'longitude': longitude.toString(),

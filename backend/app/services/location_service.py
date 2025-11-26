@@ -33,18 +33,16 @@ class LocationService:
             accuracy_m=accuracy_m
         )
         
-        # Save to history if enabled
+        # Save to history if enabled (independent of sharing preference)
         if save_history:
-            user = self.user_repo.get_by_id(user_id)
-            if user and user.location_sharing_enabled:
-                self.location_repo.add_location_history(
-                    user_id=user_id,
-                    latitude=latitude,
-                    longitude=longitude,
-                    recorded_at=datetime.utcnow(),
-                    accuracy_m=accuracy_m,
-                    source="gps"
-                )
+            self.location_repo.add_location_history(
+                user_id=user_id,
+                latitude=latitude,
+                longitude=longitude,
+                recorded_at=datetime.utcnow(),
+                accuracy_m=accuracy_m,
+                source="gps"
+            )
         
         return {
             "user_id": location.user_id,

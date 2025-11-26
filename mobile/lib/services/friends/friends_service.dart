@@ -1,12 +1,25 @@
 import '../api/api_client.dart';
+import '../auth/auth_service.dart';
 import '../../models/friend.dart';
 
 class FriendsService {
   final ApiClient _apiClient = ApiClient();
+  final AuthService _authService = AuthService();
+
+  // Ensure auth token is set before making requests
+  Future<void> _ensureTokenIsSet() async {
+    final token = await _authService.getToken();
+    if (token != null) {
+      _apiClient.setAuthToken(token);
+    }
+  }
 
   // Get friends locations for map display
   Future<List<Friend>> getFriendsLocations({bool closeFriendsOnly = false}) async {
     try {
+      // Ensure token is set before making request
+      await _ensureTokenIsSet();
+      
       final response = await _apiClient.get(
         '/location/friends/locations',
         queryParameters: {'close_friends_only': closeFriendsOnly},
@@ -26,6 +39,8 @@ class FriendsService {
   // Get friends list
   Future<List<Map<String, dynamic>>> getFriends({bool closeFriendsOnly = false}) async {
     try {
+      await _ensureTokenIsSet();
+      
       final response = await _apiClient.get(
         '/friends',
         queryParameters: {'close_friends_only': closeFriendsOnly},
@@ -44,6 +59,8 @@ class FriendsService {
   // Send friend request
   Future<Map<String, dynamic>> sendFriendRequest(int friendId) async {
     try {
+      await _ensureTokenIsSet();
+      
       final response = await _apiClient.post('/friends/$friendId/request');
 
       if (response.statusCode == 201) {
@@ -59,6 +76,8 @@ class FriendsService {
   // Accept friend request
   Future<Map<String, dynamic>> acceptFriendRequest(int friendId) async {
     try {
+      await _ensureTokenIsSet();
+      
       final response = await _apiClient.patch('/friends/$friendId/accept');
 
       if (response.statusCode == 200) {
@@ -74,6 +93,8 @@ class FriendsService {
   // Remove friend
   Future<void> removeFriend(int friendId) async {
     try {
+      await _ensureTokenIsSet();
+      
       final response = await _apiClient.delete('/friends/$friendId');
 
       if (response.statusCode != 204) {

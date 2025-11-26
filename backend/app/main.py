@@ -5,7 +5,7 @@ from app.core.config import settings
 from app.core.middleware import exception_handler, general_exception_handler
 from app.core.exceptions import MeetUpException
 from app.core.logging_config import setup_logging
-from app.api.v1 import auth, friends, location
+from app.api.v1 import auth, friends, location, users
 
 logger = setup_logging()
 
@@ -32,6 +32,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(friends.router, prefix="/api/v1")
 app.include_router(location.router, prefix="/api/v1")
+app.include_router(users.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

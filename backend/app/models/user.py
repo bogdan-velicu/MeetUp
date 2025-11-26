@@ -17,7 +17,7 @@ class User(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     email_verified = Column(Boolean, default=False, nullable=False)
     phone_verified = Column(Boolean, default=False, nullable=False)
-    location_sharing_enabled = Column(Boolean, default=False, nullable=False)
+    location_sharing_enabled = Column(Boolean, default=True, nullable=False)
     location_update_interval = Column(Integer, default=15, nullable=False)  # minutes
     availability_status = Column(String(20), default="available", nullable=False)
     total_points = Column(Integer, default=0, nullable=False)

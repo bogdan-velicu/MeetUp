@@ -55,20 +55,49 @@ class _FriendsListViewState extends State<FriendsListView> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Filter toggle
-        Padding(
+        // Filter toggle with improved styling
+        Container(
+          margin: const EdgeInsets.all(16.0),
           padding: const EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Friends',
-                style: Theme.of(context).textTheme.headlineSmall,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'My Friends',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${_friends.length} ${_friends.length == 1 ? 'friend' : 'friends'}',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
               FilterChip(
                 label: const Text('Close Friends'),
                 selected: _showCloseFriendsOnly,
                 onSelected: (_) => _toggleCloseFriendsFilter(),
+                backgroundColor: Colors.grey[100],
+                selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
+                checkmarkColor: Theme.of(context).primaryColor,
               ),
             ],
           ),
@@ -96,34 +125,88 @@ class _FriendsListViewState extends State<FriendsListView> {
                     )
                   : _friends.isEmpty
                       ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.people_outline, size: 64, color: Colors.grey),
-                              const SizedBox(height: 16),
-                              Text(
-                                _showCloseFriendsOnly 
-                                    ? 'No close friends found'
-                                    : 'No friends found',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Add some friends to see them here!',
-                                style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
+                          child: Container(
+                            margin: const EdgeInsets.all(32),
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.people_outline,
+                                    size: 48,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _showCloseFriendsOnly 
+                                      ? 'No close friends found'
+                                      : 'No friends yet',
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _showCloseFriendsOnly
+                                      ? 'Mark some friends as close friends to see them here'
+                                      : 'Start connecting with people around you!',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                if (!_showCloseFriendsOnly) ...[
+                                  const SizedBox(height: 20),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.pushNamed(context, '/add-friend');
+                                    },
+                                    icon: const Icon(Icons.person_add),
+                                    label: const Text('Add Friends'),
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         )
                       : RefreshIndicator(
                           onRefresh: _loadFriends,
                           child: ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: _friends.length,
                             itemBuilder: (context, index) {
                               final friend = _friends[index];
-                              return _FriendListItem(
-                                friend: friend,
-                                onTap: () => _onFriendTap(friend),
+                              return Container(
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: _FriendListItem(
+                                  friend: friend,
+                                  onTap: () => _onFriendTap(friend),
+                                ),
                               );
                             },
                           ),
@@ -153,59 +236,86 @@ class _FriendListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: _getStatusColor(friend.availabilityStatus),
-        child: Text(
-          friend.fullName.isNotEmpty 
-              ? friend.fullName[0].toUpperCase()
-              : friend.username[0].toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      title: Text(
-        friend.fullName.isNotEmpty ? friend.fullName : friend.username,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: Stack(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+              child: Text(
+                friend.fullName.isNotEmpty 
+                    ? friend.fullName[0].toUpperCase()
+                    : friend.username[0].toUpperCase(),
+                style: TextStyle(
+                  color: Theme.of(context).primaryColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                width: 16,
+                height: 16,
                 decoration: BoxDecoration(
                   color: _getStatusColor(friend.availabilityStatus),
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                friend.availabilityStatus.toUpperCase(),
-                style: TextStyle(
-                  color: _getStatusColor(friend.availabilityStatus),
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Last seen: ${_formatLastSeen(friend.updatedAt)}',
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 12,
             ),
+          ],
+        ),
+        title: Text(
+          friend.fullName.isNotEmpty ? friend.fullName : friend.username,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
           ),
-        ],
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            Text(
+              '@${friend.username}',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(
+                  Icons.access_time,
+                  size: 12,
+                  color: Colors.grey[500],
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _formatLastSeen(friend.updatedAt),
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: Colors.grey[400],
+        ),
+        onTap: onTap,
       ),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
     );
   }
 

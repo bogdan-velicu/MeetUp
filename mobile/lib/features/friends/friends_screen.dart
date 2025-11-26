@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'widgets/friends_list_view.dart';
+import 'add_friend_screen.dart';
+import 'friend_requests_screen.dart';
 
 class FriendsScreen extends StatelessWidget {
   const FriendsScreen({super.key});
@@ -10,21 +12,47 @@ class FriendsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Friends'),
         automaticallyImplyLeading: false,
+        elevation: 0,
+        backgroundColor: Theme.of(context).primaryColor,
+        foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FriendRequestsScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.person_add),
             onPressed: () {
-              // TODO: Navigate to add friend screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Add friend feature coming soon!'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddFriendScreen(),
                 ),
               );
             },
           ),
         ],
       ),
-      body: const FriendsListView(),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.center,
+            colors: [
+              Theme.of(context).primaryColor,
+              Theme.of(context).primaryColor.withOpacity(0.1),
+            ],
+          ),
+        ),
+        child: const FriendsListView(),
+      ),
     );
   }
 }
