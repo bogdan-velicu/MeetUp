@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_provider.dart';
+import 'widgets/location_settings_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -116,6 +117,10 @@ class ProfileScreen extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Location Settings
+                  const LocationSettingsWidget(),
+                  
                   // Logout Button
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),

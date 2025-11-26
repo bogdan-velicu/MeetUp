@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'widgets/friends_list_view.dart';
 
 class FriendsScreen extends StatelessWidget {
   const FriendsScreen({super.key});
@@ -13,40 +14,17 @@ class FriendsScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.person_add),
             onPressed: () {
-              // TODO: Navigate to add friends
+              // TODO: Navigate to add friend screen
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Add friend feature coming soon!'),
+                ),
+              );
             },
           ),
         ],
       ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.people_outline,
-              size: 64,
-              color: Colors.grey,
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Friends',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Your friends list will appear here',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
+      body: const FriendsListView(),
     );
   }
 }

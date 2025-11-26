@@ -58,7 +58,7 @@ This document tracks the development progress for the MeetUp! application, organ
   - [x] Implement `PATCH /api/v1/location/update` endpoint
   - [x] Implement `POST /api/v1/location/history` endpoint (for location history tracking)
   - [x] Add location visibility filtering (only close friends)
-  - [ ] Create location update scheduler based on user interval settings
+  - [x] Create location update scheduler based on user interval settings
 
 - [x] **Friends Service**
   - [x] Create `FriendsService` for friend management
@@ -84,10 +84,10 @@ This document tracks the development progress for the MeetUp! application, organ
   - [x] Integrate Google Maps SDK
   - [x] Create `MapView` component
   - [x] Display current user location
-  - [ ] Display friends' locations with markers
-  - [ ] Show friend names and availability status on markers
+  - [x] Display friends' locations with markers
+  - [x] Show friend names and availability status on markers
   - [x] Implement location permission handling
-  - [ ] Add location update mechanism (background/foreground)
+  - [x] Add location update mechanism (background/foreground)
 
 - [x] **Navigation & UI Structure**
   - [x] Create floating bottom navigation bar with rounded edges
@@ -96,18 +96,18 @@ This document tracks the development progress for the MeetUp! application, organ
   - [x] Create placeholder screens for all tabs
   - [x] Update route generator for new navigation structure
 
-- [ ] **Friends List**
-  - [ ] Create `FriendsListView` component
-  - [ ] Display list of friends
-  - [ ] Show friend status (available, busy, etc.)
-  - [ ] Add friend request functionality
+- [x] **Friends List**
+  - [x] Create `FriendsListView` component
+  - [x] Display list of friends
+  - [x] Show friend status (available, busy, etc.)
+  - [x] Add friend request functionality
 
 #### Testing
-- [ ] Test authentication flow (register, login, token refresh)
-- [ ] Test location update API endpoints
-- [ ] Test friends location retrieval with privacy filters
-- [ ] Test map display with multiple friends
-- [ ] Test location sharing permissions
+- [x] Test authentication flow (register, login, token refresh)
+- [x] Test location update API endpoints
+- [x] Test friends location retrieval with privacy filters
+- [x] Test map display with multiple friends
+- [x] Test location sharing permissions
 
 ---
 

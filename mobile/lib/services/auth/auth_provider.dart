@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
+import '../location/location_update_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();
@@ -28,6 +29,13 @@ class AuthProvider with ChangeNotifier {
       if (user != null) {
         _currentUser = user;
         _isAuthenticated = true;
+        
+        // Start location updates if user is already authenticated
+        try {
+          await locationUpdateService.startLocationUpdates();
+        } catch (e) {
+          debugPrint('Failed to start location updates on auth check: $e');
+        }
       } else {
         // Token might be invalid, clear it
         await _authService.logout();
@@ -90,6 +98,14 @@ class AuthProvider with ChangeNotifier {
       _isAuthenticated = true;
       _error = null;
       notifyListeners();
+      
+      // Start location updates after successful registration
+      try {
+        await locationUpdateService.startLocationUpdates();
+      } catch (e) {
+        debugPrint('Failed to start location updates after registration: $e');
+      }
+      
       return true;
     } else {
       _error = result['error'] ?? 'Registration failed';
@@ -100,6 +116,9 @@ class AuthProvider with ChangeNotifier {
   }
   
   Future<void> logout() async {
+    // Stop location updates before logout
+    locationUpdateService.stopLocationUpdates();
+    
     await _authService.logout();
     _isAuthenticated = false;
     _currentUser = null;

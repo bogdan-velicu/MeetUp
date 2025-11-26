@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'widgets/map_view_widget.dart';
 import '../../services/location/location_service.dart';
+import '../../services/friends/friends_service.dart';
+import '../../models/friend.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -12,8 +14,10 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final LocationService _locationService = LocationService();
+  final FriendsService _friendsService = FriendsService();
   LatLng? _currentPosition;
   Set<Marker> _markers = {};
+  List<Friend> _friends = [];
   bool _isLoading = true;
   String? _error;
   MapViewController? _mapController;
@@ -21,8 +25,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation();
-    _loadFriendsLocations();
+    _initializeMap();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -47,9 +50,96 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  Future<void> _initializeMap() async {
+    await _getCurrentLocation();
+    await _loadFriendsLocations();
+  }
+
   Future<void> _loadFriendsLocations() async {
-    // TODO: Load friends locations from API
-    // For now, we'll just show current user location
+    try {
+      final friends = await _friendsService.getFriendsLocations();
+      setState(() {
+        _friends = friends;
+        _createMarkers();
+      });
+    } catch (e) {
+      debugPrint('Error loading friends locations: $e');
+      // Don't show error for friends locations, just continue without them
+    }
+  }
+
+  void _createMarkers() {
+    final markers = <Marker>{};
+
+    // Add current user marker
+    if (_currentPosition != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('current_user'),
+          position: _currentPosition!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          infoWindow: const InfoWindow(
+            title: 'You',
+            snippet: 'Your current location',
+          ),
+        ),
+      );
+    }
+
+    // Add friends markers
+    for (final friend in _friends) {
+      final position = LatLng(friend.latitude, friend.longitude);
+      
+      // Choose marker color based on availability status
+      double hue = BitmapDescriptor.hueGreen; // Default: available
+      if (friend.availabilityStatus == 'busy') {
+        hue = BitmapDescriptor.hueRed;
+      } else if (friend.availabilityStatus == 'away') {
+        hue = BitmapDescriptor.hueOrange;
+      }
+
+      markers.add(
+        Marker(
+          markerId: MarkerId('friend_${friend.userId}'),
+          position: position,
+          icon: BitmapDescriptor.defaultMarkerWithHue(hue),
+          infoWindow: InfoWindow(
+            title: friend.fullName,
+            snippet: '${friend.availabilityStatus.toUpperCase()} • ${_formatLastSeen(friend.updatedAt)}',
+          ),
+          onTap: () => _onFriendMarkerTap(friend),
+        ),
+      );
+    }
+
+    setState(() {
+      _markers = markers;
+    });
+  }
+
+  String _formatLastSeen(DateTime updatedAt) {
+    final now = DateTime.now();
+    final difference = now.difference(updatedAt);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else {
+      return '${difference.inDays}d ago';
+    }
+  }
+
+  void _onFriendMarkerTap(Friend friend) {
+    // TODO: Show friend details or options (message, meet up, etc.)
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Tapped on ${friend.fullName}'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
