@@ -24,9 +24,19 @@ async def get_pending_friend_requests(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Get pending friend requests for the current user."""
+    """Get pending friend requests for the current user (incoming requests)."""
     friends_service = FriendsService(db)
     requests = friends_service.get_pending_friend_requests(current_user.id)
+    return requests
+
+@router.get("/requests/sent", response_model=list[dict])
+async def get_sent_friend_requests(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get sent friend requests by the current user (outgoing requests)."""
+    friends_service = FriendsService(db)
+    requests = friends_service.get_sent_friend_requests(current_user.id)
     return requests
 
 @router.post("/{friend_id}/request", response_model=FriendshipResponse, status_code=status.HTTP_201_CREATED)

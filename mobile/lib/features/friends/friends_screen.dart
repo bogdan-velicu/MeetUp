@@ -3,8 +3,34 @@ import 'widgets/friends_list_view.dart';
 import 'add_friend_screen.dart';
 import 'friend_requests_screen.dart';
 
-class FriendsScreen extends StatelessWidget {
+class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
+
+  @override
+  State<FriendsScreen> createState() => _FriendsScreenState();
+}
+
+class _FriendsScreenState extends State<FriendsScreen>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh when app resumes
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,13 +44,15 @@ class FriendsScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => const FriendRequestsScreen(),
                 ),
               );
+              // Refresh friends list when returning from requests screen
+              // The FriendsListView will auto-refresh via didChangeDependencies
             },
           ),
           IconButton(
@@ -56,4 +84,3 @@ class FriendsScreen extends StatelessWidget {
     );
   }
 }
-

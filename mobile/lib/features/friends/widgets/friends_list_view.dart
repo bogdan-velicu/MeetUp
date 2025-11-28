@@ -34,6 +34,11 @@ class _FriendsListViewState extends State<FriendsListView> {
     });
   }
 
+  // Public method to refresh friends list
+  void refresh() {
+    _loadFriends();
+  }
+
   Future<void> _loadFriends() async {
     setState(() {
       _isLoading = true;

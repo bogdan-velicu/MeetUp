@@ -89,10 +89,7 @@ class _MapScreenState extends State<MapScreen> {
 
     // Add friend markers
     for (final friend in _friends) {
-      final position = LatLng(
-        double.parse(friend.latitude),
-        double.parse(friend.longitude),
-      );
+      final position = LatLng(friend.latitude, friend.longitude);
 
       double hue;
       switch (friend.availabilityStatus.toLowerCase()) {
@@ -116,7 +113,8 @@ class _MapScreenState extends State<MapScreen> {
           icon: BitmapDescriptor.defaultMarkerWithHue(hue),
           infoWindow: InfoWindow(
             title: friend.fullName,
-            snippet: '${friend.availabilityStatus.toUpperCase()} • ${_formatLastSeen(friend.updatedAt)}',
+            snippet:
+                '${friend.availabilityStatus.toUpperCase()} • ${_formatLastSeen(friend.updatedAt)}',
           ),
           onTap: () {
             showModalBottomSheet(
@@ -168,20 +166,25 @@ class _MapScreenState extends State<MapScreen> {
 
     // Include current position if available
     if (_currentPosition != null) {
-      minLat = minLat < _currentPosition!.latitude ? minLat : _currentPosition!.latitude;
-      maxLat = maxLat > _currentPosition!.latitude ? maxLat : _currentPosition!.latitude;
-      minLng = minLng < _currentPosition!.longitude ? minLng : _currentPosition!.longitude;
-      maxLng = maxLng > _currentPosition!.longitude ? maxLng : _currentPosition!.longitude;
+      minLat = minLat < _currentPosition!.latitude
+          ? minLat
+          : _currentPosition!.latitude;
+      maxLat = maxLat > _currentPosition!.latitude
+          ? maxLat
+          : _currentPosition!.latitude;
+      minLng = minLng < _currentPosition!.longitude
+          ? minLng
+          : _currentPosition!.longitude;
+      maxLng = maxLng > _currentPosition!.longitude
+          ? maxLng
+          : _currentPosition!.longitude;
     }
 
     // Calculate center and zoom to show all friends
     final centerLat = (minLat + maxLat) / 2;
     final centerLng = (minLng + maxLng) / 2;
-    
-    _mapController!.animateToPosition(
-      LatLng(centerLat, centerLng),
-      zoom: 12.0,
-    );
+
+    _mapController!.animateToPosition(LatLng(centerLat, centerLng), zoom: 12.0);
   }
 
   @override
@@ -191,35 +194,37 @@ class _MapScreenState extends State<MapScreen> {
         _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text(_error!),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _initializeMapData,
-                          child: const Text('Retry'),
-                        ),
-                      ],
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
                     ),
-                  )
-                : _currentPosition != null
-                    ? MapViewWidget(
-                        initialPosition: _currentPosition,
-                        markers: _markers,
-                        onMapCreated: (controller) {
-                          setState(() {
-                            _mapController = controller;
-                          });
-                        },
-                      )
-                    : const Center(
-                        child: Text('No location available'),
-                      ),
-        
+                    const SizedBox(height: 16),
+                    Text(_error!),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _initializeMapData,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              )
+            : _currentPosition != null
+            ? MapViewWidget(
+                initialPosition: _currentPosition,
+                markers: _markers,
+                onMapCreated: (controller) {
+                  setState(() {
+                    _mapController = controller;
+                  });
+                },
+              )
+            : const Center(child: Text('No location available')),
+
         // Floating action buttons
         if (!_isLoading && _error == null && _currentPosition != null) ...[
           // My location button
@@ -240,7 +245,7 @@ class _MapScreenState extends State<MapScreen> {
               child: const Icon(Icons.my_location),
             ),
           ),
-          
+
           // Friends toggle button
           Positioned(
             top: MediaQuery.of(context).padding.top + 80,
@@ -248,8 +253,8 @@ class _MapScreenState extends State<MapScreen> {
             child: FloatingActionButton(
               mini: true,
               heroTag: "friends_toggle",
-              backgroundColor: _friends.isNotEmpty 
-                  ? Theme.of(context).primaryColor 
+              backgroundColor: _friends.isNotEmpty
+                  ? Theme.of(context).primaryColor
                   : Colors.grey,
               onPressed: () {
                 if (_friends.isNotEmpty) {

@@ -103,7 +103,7 @@ class FriendsService:
         }
     
     def get_pending_friend_requests(self, user_id: int) -> List[dict]:
-        """Get pending friend requests for a user."""
+        """Get pending friend requests for a user (incoming requests)."""
         pending_requests = self.friendship_repo.get_pending_requests(user_id)
         
         result = []
@@ -117,6 +117,27 @@ class FriendsService:
                     "username": requester.username,
                     "full_name": requester.full_name,
                     "profile_photo_url": requester.profile_photo_url,
+                    "status": friendship.status,
+                    "created_at": friendship.created_at
+                })
+        
+        return result
+    
+    def get_sent_friend_requests(self, user_id: int) -> List[dict]:
+        """Get sent friend requests by a user (outgoing requests)."""
+        sent_requests = self.friendship_repo.get_sent_requests(user_id)
+        
+        result = []
+        for friendship in sent_requests:
+            # Get the user who received the request
+            recipient = self.user_repo.get_by_id(friendship.friend_id)
+            if recipient:
+                result.append({
+                    "id": friendship.id,
+                    "user_id": recipient.id,
+                    "username": recipient.username,
+                    "full_name": recipient.full_name,
+                    "profile_photo_url": recipient.profile_photo_url,
                     "status": friendship.status,
                     "created_at": friendship.created_at
                 })

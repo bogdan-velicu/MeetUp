@@ -91,4 +91,13 @@ class FriendshipRepository:
                 Friendship.status == "pending"
             )
         ).all()
+    
+    def get_sent_requests(self, user_id: int) -> List[Friendship]:
+        """Get sent friend requests by a user (requests sent BY this user)."""
+        return self.db.query(Friendship).filter(
+            and_(
+                Friendship.user_id == user_id,
+                Friendship.status == "pending"
+            )
+        ).all()
 

@@ -136,6 +136,38 @@ class FriendsService {
     }
   }
 
+  // Get sent friend requests
+  Future<List<Map<String, dynamic>>> getSentFriendRequests() async {
+    try {
+      await _ensureTokenIsSet();
+      final response = await _apiClient.get('/friends/requests/sent');
+
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(response.data);
+      } else {
+        throw Exception('Failed to load sent requests: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error getting sent requests: $e');
+    }
+  }
+
+  // Cancel/withdraw sent friend request
+  Future<void> cancelFriendRequest(int friendId) async {
+    try {
+      await _ensureTokenIsSet();
+      
+      // Cancel by removing the pending friendship
+      final response = await _apiClient.delete('/friends/$friendId');
+
+      if (response.statusCode != 204) {
+        throw Exception('Failed to cancel friend request');
+      }
+    } catch (e) {
+      throw Exception('Error canceling friend request: $e');
+    }
+  }
+
   // Search users for adding friends
   Future<List<Map<String, dynamic>>> searchUsers(String query) async {
     try {
