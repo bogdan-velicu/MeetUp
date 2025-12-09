@@ -2,10 +2,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'notifications_service.dart';
 
 class FCMService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final NotificationsService _notificationsService = NotificationsService();
 
   // Initialize FCM
   Future<void> initialize() async {
@@ -20,23 +22,56 @@ class FCMService {
         throw Exception('Notification permissions not granted');
       }
     }
+    
+    // Request permission for Android 13+ (API 33+)
+    if (Platform.isAndroid) {
+      final androidInfo = await _localNotifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      if (androidInfo != null) {
+        final granted = await androidInfo.requestNotificationsPermission();
+        if (granted == true) {
+          debugPrint('✅ Android notification permission granted');
+        } else {
+          debugPrint('⚠️ Android notification permission denied');
+        }
+      }
+    }
 
     // Initialize local notifications
     await _initializeLocalNotifications();
 
-    // Get FCM token
+    // Get FCM token and register with backend (only if user is logged in)
     String? token = await _firebaseMessaging.getToken();
     if (token != null) {
-      // ignore: avoid_print
-      debugPrint('FCM Token: $token');
-      // TODO: Send token to backend
+      debugPrint('FCM Token obtained: ${token.substring(0, 20)}...');
+      // Register token with backend (only if user is logged in)
+      try {
+        final isLoggedIn = await _notificationsService.isUserLoggedIn();
+        if (isLoggedIn) {
+          await _notificationsService.registerFCMToken(token);
+          debugPrint('✅ FCM token registered with backend successfully');
+        } else {
+          debugPrint('⚠️ User not logged in, FCM token will be registered after login');
+        }
+      } catch (e, stackTrace) {
+        debugPrint('❌ Failed to register FCM token with backend: $e');
+        debugPrint('Stack trace: $stackTrace');
+        // Continue - token registration will be retried on next login
+      }
+    } else {
+      debugPrint('⚠️ FCM token is null - Firebase might not be properly configured');
     }
 
     // Listen for token refresh
-    _firebaseMessaging.onTokenRefresh.listen((newToken) {
-      // ignore: avoid_print
+    _firebaseMessaging.onTokenRefresh.listen((newToken) async {
       debugPrint('New FCM Token: $newToken');
-      // TODO: Update token in backend
+      // Update token in backend
+      try {
+        await _notificationsService.registerFCMToken(newToken);
+        debugPrint('FCM token updated in backend');
+      } catch (e) {
+        debugPrint('Failed to update FCM token in backend: $e');
+      }
     });
 
     // Handle foreground messages
@@ -48,6 +83,17 @@ class FCMService {
 
   // Initialize local notifications
   Future<void> _initializeLocalNotifications() async {
+    // Create notification channel for Android
+    final AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'meetup_channel', // id
+      'MeetUp Notifications', // name
+      description: 'Notifications for MeetUp app',
+      importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    // Initialize Android settings
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -67,6 +113,16 @@ class FCMService {
       initSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
+
+    // Create the notification channel for Android
+    if (Platform.isAndroid) {
+      final androidImplementation = _localNotifications.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      if (androidImplementation != null) {
+        await androidImplementation.createNotificationChannel(channel);
+        debugPrint('✅ Notification channel created: ${channel.id}');
+      }
+    }
   }
 
   // Handle foreground messages
@@ -89,6 +145,8 @@ class FCMService {
       channelDescription: 'Notifications for MeetUp app',
       importance: Importance.high,
       priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
     );
 
     const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();

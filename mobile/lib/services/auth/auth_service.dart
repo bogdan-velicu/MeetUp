@@ -1,6 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 import '../api/api_client.dart';
+import '../notifications/fcm_service.dart';
+import '../notifications/notifications_service.dart';
 
 class AuthService {
   final ApiClient _apiClient = ApiClient();
@@ -62,6 +64,19 @@ class AuthService {
         await saveToken(token);
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt(AppConstants.userIdKey, user['id']);
+        
+        // Register FCM token after successful registration
+        try {
+          final fcmService = FCMService();
+          final fcmToken = await fcmService.getToken();
+          if (fcmToken != null) {
+            final notificationsService = NotificationsService();
+            await notificationsService.registerFCMToken(fcmToken);
+          }
+        } catch (e) {
+          // Log but don't fail registration if FCM registration fails
+          print('Warning: Failed to register FCM token after registration: $e');
+        }
         
         return {'success': true, 'user': user, 'token': token};
       } else {
