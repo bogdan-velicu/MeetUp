@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'widgets/friends_list_view.dart';
 import 'add_friend_screen.dart';
 import 'friend_requests_screen.dart';
+import '../invitations/invitations_list_screen.dart';
+import '../navigation/main_navigation_screen.dart';
 
 class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
@@ -56,6 +58,18 @@ class _FriendsScreenState extends State<FriendsScreen>
             },
           ),
           IconButton(
+            icon: const Icon(Icons.event_available),
+            tooltip: 'Invitations',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const InvitationsListScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.person_add),
             onPressed: () {
               Navigator.push(
@@ -79,7 +93,20 @@ class _FriendsScreenState extends State<FriendsScreen>
             ],
           ),
         ),
-        child: const FriendsListView(),
+        child: FriendsListView(
+          onViewFriendOnMap: (friendId) {
+            // Find MainNavigationScreen from FriendsScreen context
+            final mainNav = context
+                .findAncestorStateOfType<MainNavigationScreenState>();
+            if (mainNav != null) {
+              mainNav.switchToMapAndFocusFriend(friendId);
+            } else {
+              debugPrint(
+                'ERROR: Could not find MainNavigationScreen from FriendsScreen',
+              );
+            }
+          },
+        ),
       ),
     );
   }

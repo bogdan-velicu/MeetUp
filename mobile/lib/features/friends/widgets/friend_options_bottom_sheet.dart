@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../../models/friend.dart';
 import '../../../services/friends/friends_service.dart';
+import '../../meetings/create_meeting_screen.dart';
+import '../../meetings/widgets/select_meeting_dialog.dart';
+import '../../navigation/main_navigation_screen.dart';
 
 class FriendOptionsBottomSheet extends StatelessWidget {
   final Friend friend;
+  final VoidCallback? onViewOnMap;
+  final Function(int)? onInviteToMeet;
 
-  const FriendOptionsBottomSheet({super.key, required this.friend});
+  const FriendOptionsBottomSheet({
+    super.key, 
+    required this.friend,
+    this.onViewOnMap,
+    this.onInviteToMeet,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +136,28 @@ class FriendOptionsBottomSheet extends StatelessWidget {
                 color: Colors.blue,
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Navigate to map and focus on friend's location
+                  debugPrint('View on Map tapped for friend: ${friend.userId}');
+                  
+                  if (onViewOnMap != null) {
+                    debugPrint('Using callback to view friend on map');
+                    onViewOnMap!();
+                  } else {
+                    debugPrint('No callback provided, trying to find MainNavigationScreen');
+                    // Fallback: try to find MainNavigationScreen
+                    final mainNav = context.findAncestorStateOfType<MainNavigationScreenState>();
+                    if (mainNav != null) {
+                      debugPrint('Found MainNavigationScreen via context');
+                      mainNav.switchToMapAndFocusFriend(friend.userId);
+                    } else {
+                      debugPrint('ERROR: Could not find MainNavigationScreen');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Unable to switch to map. Please navigate to the map tab manually.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  }
                 },
               ),
               _buildActionTile(
@@ -136,7 +167,7 @@ class FriendOptionsBottomSheet extends StatelessWidget {
                 color: Colors.green,
                 onTap: () {
                   Navigator.pop(context);
-                  // TODO: Create meeting invitation
+                  _showInviteOptions(context);
                 },
               ),
               const Padding(
@@ -297,5 +328,73 @@ class FriendOptionsBottomSheet extends StatelessWidget {
     } else {
       return 'Active ${difference.inDays}d ago';
     }
+  }
+
+  void _showInviteOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.add_circle_outline, color: Colors.green, size: 20),
+              ),
+              title: const Text('Create New Meeting'),
+              subtitle: const Text('Start a new meeting with this friend'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateMeetingScreen(
+                      preSelectedFriendIds: [friend.userId],
+                    ),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.event, color: Colors.blue, size: 20),
+              ),
+              title: const Text('Add to Existing Meeting'),
+              subtitle: const Text('Invite to a meeting you already created'),
+              onTap: () {
+                Navigator.pop(context);
+                showDialog(
+                  context: context,
+                  builder: (context) => SelectMeetingDialog(friendId: friend.userId),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

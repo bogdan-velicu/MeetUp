@@ -19,6 +19,7 @@ class ProfileScreen extends StatelessWidget {
         }
 
         return Scaffold(
+          backgroundColor: Colors.grey[50],
           body: CustomScrollView(
             slivers: [
               _buildSliverAppBar(context, user),
@@ -34,20 +35,21 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildSliverAppBar(BuildContext context, Map<String, dynamic> user) {
     return SliverAppBar(
-      expandedHeight: 200,
+      expandedHeight: 240,
       floating: false,
       pinned: true,
       automaticallyImplyLeading: false,
       backgroundColor: Theme.of(context).primaryColor,
+      elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
               colors: [
                 Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.8),
+                Theme.of(context).primaryColor.withOpacity(0.7),
               ],
             ),
           ),
@@ -56,38 +58,79 @@ class ProfileScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white.withOpacity(0.2),
-                  child: CircleAvatar(
-                    radius: 45,
-                    backgroundColor: Colors.white,
-                    child: Text(
-                      user['full_name']?.isNotEmpty == true
-                          ? user['full_name'][0].toUpperCase()
-                          : user['username'][0].toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColor,
+                // Profile Avatar with status indicator
+                Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 4,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 55,
+                        backgroundColor: Colors.white,
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: _getProfileColor(user['full_name'] ?? user['username']),
+                          child: Text(
+                            user['full_name']?.isNotEmpty == true
+                                ? user['full_name'][0].toUpperCase()
+                                : user['username'][0].toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    // Status indicator
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(user['availability_status'] ?? 'available'),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Text(
                   user['full_name'] ?? user['username'],
                   style: const TextStyle(
-                    fontSize: 24,
+                    fontSize: 26,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
+                const SizedBox(height: 4),
                 Text(
                   '@${user['username']}',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ],
@@ -101,60 +144,72 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildProfileContent(BuildContext context, Map<String, dynamic> user, AuthProvider authProvider) {
     return Column(
       children: [
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         
-        // Stats Cards
+        // Stats Cards - Modern design
         _buildStatsSection(user),
         
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         
-        // Menu Items
-        _buildMenuSection(context, authProvider),
+        // Quick Actions
+        _buildQuickActionsSection(context),
         
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
+        
+        // Settings Section
+        _buildSettingsSection(context, user),
+        
+        const SizedBox(height: 24),
         
         // Location Settings
-        const LocationSettingsWidget(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: LocationSettingsWidget(),
+        ),
         
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         
-        // Logout Button
+        // Logout Button with proper bottom padding
         _buildLogoutButton(context, authProvider),
         
-        const SizedBox(height: 40),
+        // Bottom padding for navigation bar
+        SizedBox(height: MediaQuery.of(context).padding.bottom + 100),
       ],
     );
   }
 
   Widget _buildStatsSection(Map<String, dynamic> user) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
-            child: _buildStatCard(
+            child: _buildModernStatCard(
               'Points',
               '${user['total_points'] ?? 0}',
-              Icons.star,
+              Icons.star_rounded,
               Colors.amber,
+              Colors.amber.withOpacity(0.1),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _buildStatCard(
+            child: _buildModernStatCard(
               'Status',
-              user['availability_status']?.toString().toUpperCase() ?? 'AVAILABLE',
+              _getStatusLabel(user['availability_status'] ?? 'available'),
               Icons.circle,
               _getStatusColor(user['availability_status'] ?? 'available'),
+              _getStatusColor(user['availability_status'] ?? 'available').withOpacity(0.1),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _buildStatCard(
+            child: _buildModernStatCard(
               'Sharing',
               user['location_sharing_enabled'] == true ? 'ON' : 'OFF',
-              Icons.location_on,
+              Icons.location_on_rounded,
               user['location_sharing_enabled'] == true ? Colors.green : Colors.grey,
+              (user['location_sharing_enabled'] == true ? Colors.green : Colors.grey).withOpacity(0.1),
             ),
           ),
         ],
@@ -162,7 +217,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildModernStatCard(String title, String value, IconData icon, Color iconColor, Color bgColor) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -170,7 +225,7 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -178,20 +233,30 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(height: 12),
           Text(
             value,
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: Colors.black87,
             ),
           ),
+          const SizedBox(height: 4),
           Text(
             title,
             style: TextStyle(
               fontSize: 12,
               color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -199,136 +264,309 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, AuthProvider authProvider) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+  Widget _buildQuickActionsSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildMenuItem(
-            context,
-            icon: Icons.edit,
-            title: 'Edit Profile',
-            subtitle: 'Update your information',
-            onTap: () {
-              // TODO: Navigate to edit profile
-            },
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              'Quick Actions',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
           ),
-          _buildDivider(),
-          _buildMenuItem(
-            context,
-            icon: Icons.history,
-            title: 'Location History',
-            subtitle: 'View your travel history',
-            onTap: () {
-              // TODO: Navigate to location history
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            context,
-            icon: Icons.notifications,
-            title: 'Notifications',
-            subtitle: 'Manage notification settings',
-            onTap: () {
-              // TODO: Navigate to notifications settings
-            },
-          ),
-          _buildDivider(),
-          _buildMenuItem(
-            context,
-            icon: Icons.privacy_tip,
-            title: 'Privacy',
-            subtitle: 'Control your privacy settings',
-            onTap: () {
-              // TODO: Navigate to privacy settings
-            },
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                _buildModernMenuItem(
+                  context,
+                  icon: Icons.edit_rounded,
+                  title: 'Edit Profile',
+                  subtitle: 'Update your personal information',
+                  onTap: () {
+                    // TODO: Navigate to edit profile
+                  },
+                ),
+                _buildDivider(),
+                _buildModernMenuItem(
+                  context,
+                  icon: Icons.history_rounded,
+                  title: 'Location History',
+                  subtitle: 'View your travel history',
+                  onTap: () {
+                    // TODO: Navigate to location history
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, {
+  Widget _buildSettingsSection(BuildContext context, Map<String, dynamic> user) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              'Settings',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.04),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                _buildModernMenuItem(
+                  context,
+                  icon: Icons.notifications_rounded,
+                  title: 'Notifications',
+                  subtitle: 'Manage notification preferences',
+                  onTap: () {
+                    // TODO: Navigate to notifications settings
+                  },
+                ),
+                _buildDivider(),
+                _buildModernMenuItem(
+                  context,
+                  icon: Icons.privacy_tip_rounded,
+                  title: 'Privacy',
+                  subtitle: 'Control your privacy settings',
+                  onTap: () {
+                    // TODO: Navigate to privacy settings
+                  },
+                ),
+                _buildDivider(),
+                _buildModernMenuItem(
+                  context,
+                  icon: Icons.help_outline_rounded,
+                  title: 'Help & Support',
+                  subtitle: 'Get help and contact support',
+                  onTap: () {
+                    // TODO: Navigate to help
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernMenuItem(BuildContext context, {
     required IconData icon,
     required String title,
     String? subtitle,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          color: Theme.of(context).primaryColor,
-          size: 20,
-        ),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 12,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: Theme.of(context).primaryColor,
+                  size: 22,
+                ),
               ),
-            )
-          : null,
-      trailing: Icon(
-        Icons.chevron_right,
-        color: Colors.grey[400],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.grey[400],
+                size: 24,
+              ),
+            ],
+          ),
+        ),
       ),
-      onTap: onTap,
     );
   }
 
   Widget _buildDivider() {
-    return Divider(
-      height: 1,
-      indent: 60,
-      endIndent: 16,
-      color: Colors.grey[200],
+    return Padding(
+      padding: const EdgeInsets.only(left: 60),
+      child: Divider(
+        height: 1,
+        thickness: 1,
+        color: Colors.grey[200],
+      ),
     );
   }
 
   Widget _buildLogoutButton(BuildContext context, AuthProvider authProvider) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () async {
-          await authProvider.logout();
-          if (context.mounted) {
-            Navigator.of(context).pushReplacementNamed('/login');
-          }
-        },
-        icon: const Icon(Icons.logout),
-        label: const Text('Logout'),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ElevatedButton.icon(
+          onPressed: () async {
+            final shouldLogout = await showDialog<bool>(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  title: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.logout_rounded, color: Colors.red, size: 24),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'Logout',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  content: const Text(
+                    'Are you sure you want to logout?\n\nThis will stop location sharing and you\'ll need to login again.',
+                    style: TextStyle(fontSize: 15, height: 1.5),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                      child: const Text(
+                        'Logout',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+
+            if (shouldLogout == true && context.mounted) {
+              await authProvider.logout();
+              if (context.mounted) {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
+            }
+          },
+          icon: const Icon(Icons.logout_rounded, size: 20),
+          label: const Text(
+            'Logout',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            elevation: 0,
           ),
         ),
       ),
@@ -346,5 +584,33 @@ class ProfileScreen extends StatelessWidget {
       default:
         return Colors.grey;
     }
+  }
+
+  String _getStatusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'available':
+        return 'Available';
+      case 'busy':
+        return 'Busy';
+      case 'away':
+        return 'Away';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  Color _getProfileColor(String name) {
+    final colors = [
+      Colors.blue,
+      Colors.purple,
+      Colors.pink,
+      Colors.orange,
+      Colors.teal,
+      Colors.indigo,
+      Colors.deepOrange,
+      Colors.cyan,
+    ];
+    final index = name.hashCode % colors.length;
+    return colors[index.abs()];
   }
 }

@@ -1,22 +1,21 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import 'widgets/map_view_widget.dart';
 import 'widgets/friend_info_popup.dart';
 import 'widgets/custom_marker_generator.dart';
 import '../../services/location/location_service.dart';
 import '../../services/friends/friends_service.dart';
-import '../../services/auth/auth_provider.dart';
 import '../../models/friend.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<MapScreen> createState() => MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class MapScreenState extends State<MapScreen> {
   final LocationService _locationService = LocationService();
   final FriendsService _friendsService = FriendsService();
   LatLng? _currentPosition;
@@ -25,6 +24,11 @@ class _MapScreenState extends State<MapScreen> {
   bool _isLoading = true;
   String? _error;
   MapViewController? _mapController;
+  
+  // Event-based completers
+  Completer<void>? _mapControllerReadyCompleter;
+  Completer<void>? _friendsLoadedCompleter;
+  bool _friendsLoading = false;
 
   @override
   void initState() {
@@ -72,18 +76,77 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> _loadFriendsLocations() async {
+    if (_friendsLoading) return; // Already loading
+    
+    _friendsLoading = true;
     try {
       final friends = await _friendsService.getFriendsLocations();
       setState(() {
         _friends = friends;
+        _friendsLoading = false;
       });
       await _updateMarkers();
+      
+      // Notify that friends are loaded (event-based)
+      _friendsLoadedCompleter?.complete();
+      _friendsLoadedCompleter = null;
     } catch (e) {
       debugPrint('Error loading friends locations: $e');
       setState(() {
         _error = 'Error getting friends locations: $e';
+        _friendsLoading = false;
       });
+      // Complete with error
+      _friendsLoadedCompleter?.completeError(e);
+      _friendsLoadedCompleter = null;
     }
+  }
+  
+  Future<void> _waitForFriendsLoaded({Duration timeout = const Duration(seconds: 5)}) async {
+    if (_friends.isNotEmpty) {
+      return; // Already loaded
+    }
+    
+    if (_friendsLoadedCompleter == null) {
+      _friendsLoadedCompleter = Completer<void>();
+      if (!_friendsLoading) {
+        _loadFriendsLocations();
+      }
+    }
+    
+    return _friendsLoadedCompleter!.future.timeout(
+      timeout,
+      onTimeout: () {
+        debugPrint('Timeout waiting for friends to load');
+        throw TimeoutException('Friends loading timeout');
+      },
+    );
+  }
+  
+  Future<void> _waitForMapController({Duration timeout = const Duration(seconds: 5)}) async {
+    if (_mapController != null) {
+      return; // Already ready
+    }
+    
+    // Create completer if it doesn't exist
+    if (_mapControllerReadyCompleter == null) {
+      _mapControllerReadyCompleter = Completer<void>();
+    }
+    
+    // Double-check in case controller was set between the check and completer creation
+    if (_mapController != null) {
+      _mapControllerReadyCompleter?.complete();
+      _mapControllerReadyCompleter = null;
+      return;
+    }
+    
+    return _mapControllerReadyCompleter!.future.timeout(
+      timeout,
+      onTimeout: () {
+        debugPrint('Timeout waiting for map controller');
+        throw TimeoutException('Map controller timeout');
+      },
+    );
   }
 
   Future<void> _updateMarkers() async {
@@ -170,6 +233,68 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
+  Future<void> focusOnFriend(int friendId) async {
+    debugPrint('=== focusOnFriend START (event-based) ===');
+    debugPrint('focusOnFriend called for friendId: $friendId');
+    
+    try {
+      // Wait for events (with timeouts as fallback)
+      debugPrint('Waiting for friends to load...');
+      await _waitForFriendsLoaded(timeout: const Duration(seconds: 3));
+      debugPrint('Friends loaded, count: ${_friends.length}');
+      
+      debugPrint('Waiting for map controller...');
+      await _waitForMapController(timeout: const Duration(seconds: 3));
+      debugPrint('Map controller ready');
+      
+      // Find the friend
+      final friend = _friends.firstWhere(
+        (f) => f.userId == friendId,
+      );
+      
+      debugPrint('Found friend: ${friend.fullName} at ${friend.latitude}, ${friend.longitude}');
+      
+      final friendPosition = LatLng(friend.latitude, friend.longitude);
+      
+      // Animate to friend position
+      debugPrint('Animating to friend position: $friendPosition');
+      await _mapController!.animateToPosition(
+        friendPosition,
+        zoom: 16.0,
+      );
+      
+      // Show the friend info popup after animation completes
+      if (mounted) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => FriendInfoPopup(friend: friend),
+        );
+      }
+      
+      debugPrint('Successfully focused on friend');
+    } on TimeoutException catch (e) {
+      debugPrint('Timeout waiting for event: $e');
+      // Fallback: try anyway if we have partial data
+      if (_friends.isNotEmpty && _mapController != null) {
+        try {
+          final friend = _friends.firstWhere((f) => f.userId == friendId);
+          await _mapController!.animateToPosition(
+            LatLng(friend.latitude, friend.longitude),
+            zoom: 16.0,
+          );
+        } catch (e) {
+          debugPrint('Fallback also failed: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error focusing on friend: $e');
+      debugPrint('Available friend IDs: ${_friends.map((f) => f.userId).toList()}');
+      rethrow;
+    }
+  }
+
 
   void _showAllFriends() {
     if (_friends.isEmpty || _mapController == null) return;
@@ -237,6 +362,9 @@ class _MapScreenState extends State<MapScreen> {
                           setState(() {
                             _mapController = controller;
                           });
+                          // Notify that map controller is ready (event-based)
+                          _mapControllerReadyCompleter?.complete();
+                          _mapControllerReadyCompleter = null;
                         },
                       )
                     : const Center(
@@ -245,19 +373,6 @@ class _MapScreenState extends State<MapScreen> {
         
         // Floating action buttons
         if (!_isLoading && _error == null && _currentPosition != null) ...[
-          // Logout button (top-left)
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 16,
-            left: 16,
-            child: FloatingActionButton(
-              mini: true,
-              heroTag: "logout_button",
-              backgroundColor: Colors.red.withOpacity(0.9),
-              onPressed: () => _showLogoutDialog(),
-              child: const Icon(Icons.logout, color: Colors.white),
-            ),
-          ),
-          
           // My location button
           Positioned(
             top: MediaQuery.of(context).padding.top + 16,
@@ -303,50 +418,4 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: Row(
-            children: [
-              Icon(Icons.logout, color: Colors.red, size: 28),
-              const SizedBox(width: 12),
-              const Text('Logout'),
-            ],
-          ),
-          content: const Text(
-            'Are you sure you want to logout?\n\nThis will stop location sharing and you\'ll need to login again.',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                await authProvider.logout();
-                if (context.mounted) {
-                  Navigator.of(context).pushReplacementNamed('/login');
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text('Logout'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }

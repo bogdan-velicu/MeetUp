@@ -4,7 +4,9 @@ import '../../../services/friends/friends_service.dart';
 import 'friend_options_bottom_sheet.dart';
 
 class FriendsListView extends StatefulWidget {
-  const FriendsListView({super.key});
+  final Function(int)? onViewFriendOnMap;
+  
+  const FriendsListView({super.key, this.onViewFriendOnMap});
 
   @override
   State<FriendsListView> createState() => _FriendsListViewState();
@@ -238,7 +240,12 @@ class _FriendsListViewState extends State<FriendsListView> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => FriendOptionsBottomSheet(friend: friend),
+      builder: (context) => FriendOptionsBottomSheet(
+        friend: friend,
+        onViewOnMap: widget.onViewFriendOnMap != null 
+            ? () => widget.onViewFriendOnMap!(friend.userId)
+            : null,
+      ),
     ).then((_) {
       // Refresh friends list when bottom sheet is closed
       _loadFriends();

@@ -3,26 +3,69 @@ import '../chat/chat_screen.dart';
 import '../friends/friends_screen.dart';
 import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
-import '../events/events_screen.dart';
+import '../meetings/meetings_list_screen.dart';
 import 'widgets/animated_bottom_nav_item.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState extends State<MainNavigationScreen> {
+class MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 2; // Start at Map (center)
+  final GlobalKey<MapScreenState> _mapScreenKey = GlobalKey<MapScreenState>();
 
-  final List<Widget> _screens = [
-    const ChatScreen(),
-    const FriendsScreen(),
-    const MapScreen(),
-    const EventsScreen(),
-    const ProfileScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const ChatScreen(),
+      const FriendsScreen(),
+      MapScreen(key: _mapScreenKey),
+      const MeetingsListScreen(),
+      const ProfileScreen(),
+    ];
+  }
+
+  void switchToMapAndFocusFriend(int friendId) {
+    debugPrint('=== switchToMapAndFocusFriend START ===');
+    debugPrint('switchToMapAndFocusFriend called for friendId: $friendId');
+    debugPrint('Current tab index: $_currentIndex');
+    debugPrint('Map screen key current state: ${_mapScreenKey.currentState}');
+    
+    // Switch to map tab first
+    setState(() {
+      _currentIndex = 2; // Switch to map tab
+    });
+    debugPrint('Tab switched to map (index 2)');
+    
+    // Function to actually call focusOnFriend
+    void callFocusOnFriend() {
+      final mapState = _mapScreenKey.currentState;
+      debugPrint('Attempting to call focusOnFriend, mapState: $mapState');
+      if (mapState != null) {
+        debugPrint('Calling focusOnFriend on map state for friendId: $friendId');
+        mapState.focusOnFriend(friendId).then((_) {
+          debugPrint('focusOnFriend future completed');
+        }).catchError((e, stackTrace) {
+          debugPrint('Error in focusOnFriend: $e');
+          debugPrint('Stack trace: $stackTrace');
+        });
+      } else {
+        debugPrint('ERROR: Map screen state is null!');
+      }
+    }
+    
+    // Event-based: wait for tab switch to complete, then call focus
+    // No artificial delays - just wait for the frame to render
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      callFocusOnFriend();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
