@@ -115,68 +115,78 @@ This document tracks the development progress for the MeetUp! application, organ
 **Goal**: Meeting creation and invitation management.
 
 #### Backend Tasks
-- [ ] **Meetings Service**
-  - [ ] Create `MeetingsService` for meeting management
-  - [ ] Implement `POST /api/v1/meetings` endpoint (create meeting)
-  - [ ] Implement `GET /api/v1/meetings` endpoint (list user's meetings)
-  - [ ] Implement `GET /api/v1/meetings/{id}` endpoint (meeting details)
-  - [ ] Implement `PATCH /api/v1/meetings/{id}` endpoint (update meeting)
-  - [ ] Implement `DELETE /api/v1/meetings/{id}` endpoint (cancel meeting)
-  - [ ] Add validation for meeting creation
+- [x] **Meetings Service**
+  - [x] Create `MeetingsService` for meeting management
+  - [x] Implement `POST /api/v1/meetings` endpoint (create meeting)
+  - [x] Implement `GET /api/v1/meetings` endpoint (list user's meetings)
+  - [x] Implement `GET /api/v1/meetings/{id}` endpoint (meeting details)
+  - [x] Implement `PATCH /api/v1/meetings/{id}` endpoint (update meeting)
+  - [x] Implement `DELETE /api/v1/meetings/{id}` endpoint (cancel meeting)
+  - [x] Add validation for meeting creation
+  - [x] Implement `POST /api/v1/meetings/{id}/participants` endpoint (add participants to existing meeting)
+  - [x] Add `participant_count` field to meeting responses
 
-- [ ] **Invitations Service**
-  - [ ] Create `InvitationsService` for invitation management
-  - [ ] Implement `GET /api/v1/invitations` endpoint (list invitations)
-  - [ ] Implement `GET /api/v1/invitations/{id}` endpoint (invitation details)
-  - [ ] Implement `PATCH /api/v1/invitations/{id}` endpoint (accept/decline)
-  - [ ] Add automatic invitation creation when meeting is created
-  - [ ] Implement notification triggers on invitation status change
+- [x] **Invitations Service**
+  - [x] Create `InvitationsService` for invitation management
+  - [x] Implement `GET /api/v1/invitations` endpoint (list invitations)
+  - [x] Implement `GET /api/v1/invitations/{id}` endpoint (invitation details)
+  - [x] Implement `PATCH /api/v1/invitations/{id}` endpoint (accept/decline)
+  - [x] Add automatic invitation creation when meeting is created
+  - [x] Implement notification triggers on invitation status change (placeholder - needs FCM)
 
 - [ ] **Notifications**
-  - [ ] Set up FCM integration
-  - [ ] Create notification service
+  - [x] Set up FCM integration (frontend initialized, backend structure exists)
+  - [x] Create notification service (basic structure created)
+  - [ ] Add FCM token storage to User model/database
+  - [ ] Implement API endpoint to register/update FCM tokens
+  - [ ] Implement FCM push notification sending in backend
   - [ ] Send push notification when invitation is created
   - [ ] Send push notification when invitation is accepted/declined
+  - [ ] Send push notification when meeting is updated/cancelled
+  - [ ] Update frontend to send FCM tokens to backend
   - [ ] Store notification preferences per user
 
 #### Frontend Tasks
-- [ ] **Meeting Creation**
-  - [ ] Create `MeetingCreateView` component
-  - [ ] Implement friend selection (multi-select)
-  - [ ] Implement location picker (map or search)
-  - [ ] Add date/time picker
-  - [ ] Add meeting title and description fields
-  - [ ] Implement form validation
-  - [ ] Add submit functionality
+- [x] **Meeting Creation**
+  - [x] Create `MeetingCreateView` component
+  - [x] Implement friend selection (multi-select)
+  - [x] Implement location picker (map or search)
+  - [x] Add date/time picker
+  - [x] Add meeting title and description fields
+  - [x] Implement form validation
+  - [x] Add submit functionality
+  - [x] Add ability to invite friends to existing meetings
 
-- [ ] **Meetings List**
-  - [ ] Create `MeetingListView` component
-  - [ ] Display user's organized meetings
-  - [ ] Show meeting status (pending, confirmed, cancelled, completed)
-  - [ ] Add filter options (upcoming, past, all)
-  - [ ] Implement pull-to-refresh
+- [x] **Meetings List**
+  - [x] Create `MeetingListView` component
+  - [x] Display user's organized meetings
+  - [x] Show meeting status (pending, confirmed, cancelled, completed)
+  - [x] Add filter options (upcoming, past, all, organized, invited)
+  - [x] Implement pull-to-refresh
+  - [x] Fix participant count display
 
-- [ ] **Meeting Details**
-  - [ ] Create `MeetingView` component
-  - [ ] Display meeting information
-  - [ ] Show participant list with status
-  - [ ] Add edit/delete functionality (for organizer)
-  - [ ] Display meeting location on map
+- [x] **Meeting Details**
+  - [x] Create `MeetingView` component
+  - [x] Display meeting information
+  - [x] Show participant list with status (with user names)
+  - [x] Add edit/delete functionality (for organizer)
+  - [x] Display meeting location on map
 
-- [ ] **Invitations**
-  - [ ] Create `InvitationsListView` component
-  - [ ] Display received invitations
-  - [ ] Create `InvitationView` component
-  - [ ] Add accept/decline buttons
-  - [ ] Show invitation details (organizer, location, time)
-  - [ ] Implement quick actions (swipe to accept/decline)
+- [x] **Invitations**
+  - [x] Create `InvitationsListView` component
+  - [x] Display received invitations
+  - [x] Create `InvitationView` component
+  - [x] Add accept/decline buttons
+  - [x] Show invitation details (organizer, location, time)
+  - [ ] Implement quick actions (swipe to accept/decline) - optional enhancement
 
 #### Testing
-- [ ] Test meeting creation flow
-- [ ] Test invitation acceptance/decline
-- [ ] Test notification delivery
-- [ ] Test meeting update and cancellation
-- [ ] Test participant status updates
+- [x] Test meeting creation flow
+- [x] Test invitation acceptance/decline
+- [ ] Test notification delivery (pending FCM implementation)
+- [x] Test meeting update and cancellation
+- [x] Test participant status updates
+- [x] Test adding participants to existing meetings
 
 ---
 
