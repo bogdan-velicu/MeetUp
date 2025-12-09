@@ -21,6 +21,7 @@ class User(Base):
     location_update_interval = Column(Integer, default=15, nullable=False)  # minutes
     availability_status = Column(String(20), default="available", nullable=False)
     total_points = Column(Integer, default=0, nullable=False)
+    fcm_token = Column(String(255), nullable=True)  # Firebase Cloud Messaging token
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
     last_login_at = Column(DateTime, nullable=True)

@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.repositories.friendship_repository import FriendshipRepository
 from app.repositories.user_repository import UserRepository
+from app.services.notification_service import NotificationService
 from app.core.exceptions import NotFoundError, ConflictError, ValidationError
 from app.models.user import User
 from typing import List
@@ -9,6 +10,7 @@ class FriendsService:
     def __init__(self, db: Session):
         self.friendship_repo = FriendshipRepository(db)
         self.user_repo = UserRepository(db)
+        self.notification_service = NotificationService(db)
         self.db = db
     
     def get_friends(self, user_id: int, close_friends_only: bool = False) -> List[dict]:
@@ -52,6 +54,19 @@ class FriendsService:
         # Create friendship with pending status
         friendship = self.friendship_repo.create(user_id, friend_id, status="pending", is_close_friend=False)
         
+        # Send notification to the friend
+        try:
+            sender = self.user_repo.get_by_id(user_id)
+            sender_name = sender.full_name if sender and sender.full_name else sender.username if sender else "Someone"
+            self.notification_service.send_friend_request_notification(
+                recipient_id=friend_id,
+                sender_name=sender_name
+            )
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send friend request notification: {e}")
+        
         return {
             "id": friendship.id,
             "user_id": friendship.user_id,
@@ -75,6 +90,19 @@ class FriendsService:
         reciprocal = self.friendship_repo.get_friendship(user_id, friend_id)
         if not reciprocal:
             self.friendship_repo.create(user_id, friend_id, status="accepted", is_close_friend=False)
+        
+        # Send notification to the original sender
+        try:
+            acceptor = self.user_repo.get_by_id(user_id)
+            acceptor_name = acceptor.full_name if acceptor and acceptor.full_name else acceptor.username if acceptor else "Someone"
+            self.notification_service.send_friend_request_accepted_notification(
+                sender_id=friend_id,
+                acceptor_name=acceptor_name
+            )
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to send friend request accepted notification: {e}")
         
         return {
             "id": friendship.id,

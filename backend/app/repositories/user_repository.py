@@ -45,6 +45,20 @@ class UserRepository:
         """Verify user password."""
         return verify_password(password, user.password_hash)
     
+    def update(self, user_id: int, **kwargs) -> Optional[User]:
+        """Update user fields. Pass fields to update as keyword arguments."""
+        user = self.get_by_id(user_id)
+        if not user:
+            return None
+        
+        for key, value in kwargs.items():
+            if hasattr(user, key) and value is not None:
+                setattr(user, key, value)
+        
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+    
     def update_last_login(self, user_id: int):
         """Update user's last login timestamp."""
         user = self.get_by_id(user_id)

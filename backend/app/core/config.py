@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
     
+    # Firebase
+    FIREBASE_CREDENTIALS_PATH: str = ""  # Path to Firebase service account JSON file
+    FIREBASE_PROJECT_ID: str = ""  # Firebase project ID (optional, can be extracted from credentials)
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
