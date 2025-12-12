@@ -217,6 +217,48 @@ class NotificationService:
         
         logger.info(f"Sent meeting update to {result['success_count']} participants, {result['failure_count']} failed")
     
+    def send_shake_match_notification(self, user_id: int, friend_name: str, meeting_id: int):
+        """Send notification when a shake match is found.
+        
+        Args:
+            user_id: ID of the user receiving the notification
+            friend_name: Name of the friend they matched with
+            meeting_id: ID of the created meeting
+        """
+        # Check notification preferences
+        prefs = self.get_user_notification_preferences(user_id)
+        if not prefs.get("meeting_invitations", True) or not prefs.get("push_enabled", True):
+            logger.info(f"User {user_id} has disabled shake match notifications")
+            return
+        
+        # Get user's FCM token
+        user = self.user_repo.get_by_id(user_id)
+        if not user or not user.fcm_token:
+            logger.warning(f"User {user_id} does not have an FCM token registered")
+            return
+        
+        # Prepare notification
+        title = "🎉 Shake Match!"
+        body = f"You matched with {friend_name}! Meeting created."
+        
+        data = {
+            "type": "shake_match",
+            "meeting_id": str(meeting_id),
+            "action": "view_meeting"
+        }
+        
+        success = self.fcm_client.send_notification(
+            fcm_token=user.fcm_token,
+            title=title,
+            body=body,
+            data=data
+        )
+        
+        if success:
+            logger.info(f"Sent shake match notification to user {user_id}")
+        else:
+            logger.warning(f"Failed to send shake match notification to user {user_id}")
+    
     def get_user_notification_preferences(self, user_id: int) -> dict:
         """Get user's notification preferences.
         

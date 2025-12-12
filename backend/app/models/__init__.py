@@ -9,6 +9,7 @@ from .points import PointsTransaction, StoreItem, UserPurchase
 from .mission import Mission, UserMission
 from .event import Event, EventParticipant
 from .location import Location, LocationReview, LocationCampaign
+from .shake_session import ShakeSession, ShakeSessionStatus
 
 __all__ = [
     "User",
@@ -32,5 +33,7 @@ __all__ = [
     "Location",
     "LocationReview",
     "LocationCampaign",
+    "ShakeSession",
+    "ShakeSessionStatus",
 ]
 

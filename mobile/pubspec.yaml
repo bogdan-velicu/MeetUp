@@ -49,6 +49,9 @@ dependencies:
   google_maps_flutter: ^2.5.0
   geocoding: ^3.0.0
   
+  # Sensors
+  shake: ^3.0.0
+  
   # Notifications (will be added when FCM is configured)
   # firebase_messaging: ^14.7.9
   # firebase_core: ^2.24.2

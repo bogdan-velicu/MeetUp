@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/auth/auth_provider.dart';
 import 'widgets/location_settings_widget.dart';
 import 'points_history_screen.dart';
+import '../shake/shake_to_meetup_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -296,6 +297,21 @@ class ProfileScreen extends StatelessWidget {
             ),
             child: Column(
               children: [
+                _buildModernMenuItem(
+                  context,
+                  icon: Icons.phone_android_rounded,
+                  title: 'Shake to MeetUp',
+                  subtitle: 'Shake your phone to find nearby friends',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ShakeToMeetUpScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildDivider(),
                 _buildModernMenuItem(
                   context,
                   icon: Icons.edit_rounded,
