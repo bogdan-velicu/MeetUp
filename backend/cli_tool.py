@@ -184,17 +184,22 @@ class MeetUpCLI:
             return response.json()
         return None
     
-    def create_meeting(self, title: str, description: str, location: str, 
-                      scheduled_at: str, participant_ids: List[int] = None) -> Optional[Dict]:
+    def create_meeting(self, title: str, description: str, address: str, 
+                      scheduled_at: str, participant_ids: List[int] = None,
+                      latitude: str = None, longitude: str = None) -> Optional[Dict]:
         """Create a meeting."""
         data = {
             "title": title,
             "description": description,
-            "location": location,
+            "address": address,
             "scheduled_at": scheduled_at
         }
         if participant_ids:
             data["participant_ids"] = participant_ids
+        if latitude:
+            data["latitude"] = latitude
+        if longitude:
+            data["longitude"] = longitude
         
         response = self._make_request("POST", "/meetings", json=data)
         if response and response.status_code == 201:
@@ -321,10 +326,17 @@ class MeetUpCLI:
     
     def display_meeting(self, meeting: Dict):
         """Display meeting details in a formatted way."""
+        address = meeting.get('address', 'N/A')
+        lat = meeting.get('latitude')
+        lon = meeting.get('longitude')
+        location_info = address
+        if lat and lon:
+            location_info = f"{address} ({lat}, {lon})"
+        
         panel_content = f"""
 [bold]Title:[/bold] {meeting.get('title', 'N/A')}
 [bold]Description:[/bold] {meeting.get('description', 'N/A')}
-[bold]Location:[/bold] {meeting.get('location', 'N/A')}
+[bold]Address:[/bold] {location_info}
 [bold]Organizer:[/bold] {meeting.get('organizer', {}).get('username', 'N/A')}
 [bold]Scheduled At:[/bold] {meeting.get('scheduled_at', 'N/A')}
 [bold]Status:[/bold] {meeting.get('status', 'N/A')}
@@ -459,22 +471,30 @@ class MeetUpCLI:
             elif choice == "5":
                 title = Prompt.ask("Title")
                 description = Prompt.ask("Description")
-                location = Prompt.ask("Location")
+                address = Prompt.ask("Address")
                 scheduled_at = Prompt.ask("Scheduled At (ISO format, e.g., 2025-12-10T15:00:00)")
+                lat = Prompt.ask("Latitude (optional, press Enter to skip)", default="")
+                lon = Prompt.ask("Longitude (optional, press Enter to skip)", default="")
                 participants = Prompt.ask("Participant IDs (comma-separated, or leave empty)", default="")
                 participant_ids = [int(x.strip()) for x in participants.split(",") if x.strip()] if participants else None
-                self.create_meeting(title, description, location, scheduled_at, participant_ids)
+                latitude = lat.strip() if lat.strip() else None
+                longitude = lon.strip() if lon.strip() else None
+                self.create_meeting(title, description, address, scheduled_at, participant_ids, latitude, longitude)
             elif choice == "6":
                 meeting_id = int(Prompt.ask("Meeting ID"))
                 console.print("Leave empty to skip a field")
                 title = Prompt.ask("Title (new)", default="")
                 description = Prompt.ask("Description (new)", default="")
-                location = Prompt.ask("Location (new)", default="")
+                address = Prompt.ask("Address (new)", default="")
+                lat = Prompt.ask("Latitude (new, optional)", default="")
+                lon = Prompt.ask("Longitude (new, optional)", default="")
                 scheduled_at = Prompt.ask("Scheduled At (new, ISO format)", default="")
                 update_data = {}
                 if title: update_data["title"] = title
                 if description: update_data["description"] = description
-                if location: update_data["location"] = location
+                if address: update_data["address"] = address
+                if lat.strip(): update_data["latitude"] = lat.strip()
+                if lon.strip(): update_data["longitude"] = lon.strip()
                 if scheduled_at: update_data["scheduled_at"] = scheduled_at
                 if update_data:
                     self.update_meeting(meeting_id, **update_data)

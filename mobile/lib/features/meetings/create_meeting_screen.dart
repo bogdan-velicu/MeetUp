@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../services/meetings/meetings_service.dart';
 import '../../services/friends/friends_service.dart';
+import 'widgets/location_picker_modal.dart';
 
 class CreateMeetingScreen extends StatefulWidget {
   final List<int>? preSelectedFriendIds;
@@ -25,6 +27,10 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
   Set<int> _selectedFriendIds = {};
   bool _isLoading = false;
   bool _isLoadingFriends = true;
+  
+  // Location data
+  String? _selectedLatitude;
+  String? _selectedLongitude;
 
   @override
   void initState() {
@@ -120,6 +126,8 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
         title: _titleController.text.isEmpty ? null : _titleController.text,
         description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
         address: _addressController.text.isEmpty ? null : _addressController.text,
+        latitude: _selectedLatitude,
+        longitude: _selectedLongitude,
         scheduledAt: scheduledAt,
         participantIds: _selectedFriendIds.toList(),
       );
@@ -175,12 +183,58 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
               maxLines: 3,
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Address (optional)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on),
+            // Location picker button
+            InkWell(
+              onTap: () async {
+                final result = await Navigator.push<Map<String, String>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LocationPickerModal(
+                      initialPosition: _selectedLatitude != null && _selectedLongitude != null
+                          ? LatLng(
+                              double.parse(_selectedLatitude!),
+                              double.parse(_selectedLongitude!),
+                            )
+                          : null,
+                      initialAddress: _addressController.text.isEmpty ? null : _addressController.text,
+                    ),
+                  ),
+                );
+                
+                if (result != null) {
+                  setState(() {
+                    _addressController.text = result['address'] ?? '';
+                    _selectedLatitude = result['latitude'];
+                    _selectedLongitude = result['longitude'];
+                  });
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Text(
+                        _addressController.text.isEmpty
+                            ? 'Select Location (optional)'
+                            : _addressController.text,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _addressController.text.isEmpty ? Colors.grey : Colors.black,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Icon(Icons.arrow_forward_ios, size: 16),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 24),

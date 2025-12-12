@@ -47,6 +47,7 @@ dependencies:
   # Location
   geolocator: ^10.1.0
   google_maps_flutter: ^2.5.0
+  geocoding: ^3.0.0
   
   # Notifications (will be added when FCM is configured)
   # firebase_messaging: ^14.7.9
