@@ -134,17 +134,18 @@ This document tracks the development progress for the MeetUp! application, organ
   - [x] Add automatic invitation creation when meeting is created
   - [x] Implement notification triggers on invitation status change (placeholder - needs FCM)
 
-- [ ] **Notifications**
+- [x] **Notifications**
   - [x] Set up FCM integration (frontend initialized, backend structure exists)
   - [x] Create notification service (basic structure created)
-  - [ ] Add FCM token storage to User model/database
-  - [ ] Implement API endpoint to register/update FCM tokens
-  - [ ] Implement FCM push notification sending in backend
-  - [ ] Send push notification when invitation is created
-  - [ ] Send push notification when invitation is accepted/declined
-  - [ ] Send push notification when meeting is updated/cancelled
-  - [ ] Update frontend to send FCM tokens to backend
-  - [ ] Store notification preferences per user
+  - [x] Add FCM token storage to User model/database
+  - [x] Implement API endpoint to register/update FCM tokens
+  - [x] Implement FCM push notification sending in backend
+  - [x] Send push notification when invitation is created
+  - [x] Send push notification when invitation is accepted/declined
+  - [x] Send push notification when meeting is updated/cancelled
+  - [x] Send push notification when friend request is sent/accepted
+  - [x] Update frontend to send FCM tokens to backend
+  - [ ] Store notification preferences per user (optional enhancement)
 
 #### Frontend Tasks
 - [x] **Meeting Creation**
@@ -183,7 +184,7 @@ This document tracks the development progress for the MeetUp! application, organ
 #### Testing
 - [x] Test meeting creation flow
 - [x] Test invitation acceptance/decline
-- [ ] Test notification delivery (pending FCM implementation)
+- [x] Test notification delivery (FCM working correctly)
 - [x] Test meeting update and cancellation
 - [x] Test participant status updates
 - [x] Test adding participants to existing meetings
@@ -204,20 +205,20 @@ This document tracks the development progress for the MeetUp! application, organ
   - [ ] Implement `POST /api/v1/groups/{id}/leave` endpoint (leave group)
   - [ ] Add group admin role management
 
-- [ ] **Points Engine**
-  - [ ] Create `PointsEngine` service
-  - [ ] Implement points calculation logic
-  - [ ] Award points on meeting confirmation
-  - [ ] Implement `GET /api/v1/points/summary` endpoint (total points)
-  - [ ] Implement `GET /api/v1/points/history` endpoint (transaction history)
-  - [ ] Add points transaction logging
-  - [ ] Update user's total_points on transaction
+- [x] **Points Engine**
+  - [x] Create `PointsEngine` service (PointsService)
+  - [x] Implement points calculation logic
+  - [x] Award points on meeting confirmation
+  - [x] Implement `GET /api/v1/points/summary` endpoint (total points)
+  - [x] Implement `GET /api/v1/points/history` endpoint (transaction history)
+  - [x] Add points transaction logging
+  - [x] Update user's total_points on transaction
 
-- [ ] **Meeting Confirmation**
-  - [ ] Add meeting confirmation endpoint
-  - [ ] Award points when meeting is confirmed
-  - [ ] Create points transaction record
-  - [ ] Send notification on points earned
+- [x] **Meeting Confirmation**
+  - [x] Add meeting confirmation endpoint
+  - [x] Award points when meeting is confirmed
+  - [x] Create points transaction record
+  - [ ] Send notification on points earned (optional enhancement)
 
 #### Frontend Tasks
 - [ ] **Groups UI**
@@ -229,19 +230,65 @@ This document tracks the development progress for the MeetUp! application, organ
   - [ ] Display group members list
   - [ ] Show group admin indicators
 
-- [ ] **Profile & Points**
-  - [ ] Update `ProfileView` to display total points
-  - [ ] Create points history view
-  - [ ] Display points transaction list
-  - [ ] Show points earned breakdown
-  - [ ] Add meeting confirmation button (with points reward)
+- [x] **Profile & Points**
+  - [x] Update `ProfileView` to display total points (already shows in stats)
+  - [x] Create points history view
+  - [x] Display points transaction list
+  - [x] Show points earned breakdown
+  - [x] Add meeting confirmation button (with points reward)
 
 #### Testing
 - [ ] Test group creation and member management
-- [ ] Test points calculation and awarding
-- [ ] Test points history display
-- [ ] Test meeting confirmation and points reward
+- [x] Test points calculation and awarding (test script created)
+- [x] Test points history display
+- [x] Test meeting confirmation and points reward
 - [ ] Test group permissions (admin vs member)
+
+---
+
+### SPRINT 2.5: Shake to MeetUp Feature
+**Goal**: Implement spontaneous meetup feature using shake detection and proximity matching.
+
+#### Backend Tasks
+- [ ] **Shake Sessions Service**
+  - [ ] Create `ShakeSession` model and database table
+  - [ ] Create `ShakeRepository` for database operations
+  - [ ] Create `ShakeService` with proximity detection logic
+  - [ ] Implement `POST /api/v1/shake/initiate` endpoint
+  - [ ] Implement `GET /api/v1/shake/nearby-friends` endpoint
+  - [ ] Implement `POST /api/v1/shake/match` endpoint
+  - [ ] Add automatic meeting creation on shake match
+  - [ ] Integrate points awarding on match (requires points system)
+  - [ ] Add cleanup job for expired shake sessions
+  - [ ] Implement proximity detection algorithm (Haversine formula)
+
+#### Frontend Tasks
+- [ ] **Shake Detection**
+  - [ ] Add `sensors_plus` package for accelerometer access
+  - [ ] Create `ShakeDetectionService` class
+  - [ ] Implement shake detection algorithm
+  - [ ] Create shake detection UI component
+  - [ ] Add visual feedback (animations, haptics)
+  - [ ] Integrate with backend shake endpoints
+  - [ ] Handle shake session lifecycle
+
+- [ ] **Shake Match UI**
+  - [ ] Create shake match success screen
+  - [ ] Show nearby friends who are shaking
+  - [ ] Add countdown timer for match window
+  - [ ] Create push notification for successful match
+  - [ ] Show points earned notification
+  - [ ] Add shake history/statistics
+
+#### Testing
+- [ ] Test shake detection accuracy
+- [ ] Test proximity detection with real locations
+- [ ] Test synchronization timing
+- [ ] Test edge cases (multiple friends, expired sessions)
+- [ ] Test points awarding (when points system is ready)
+- [ ] Test automatic meeting creation
+
+**Note**: See `docs/SHAKE_TO_MEETUP_PLAN.md` for detailed implementation plan.
 
 ---
 
@@ -510,5 +557,10 @@ This document tracks the development progress for the MeetUp! application, organ
 
 ---
 
-**Last Updated**: [Date will be updated as progress is made]
+**Last Updated**: December 10, 2025
+
+**Recent Updates**:
+- ✅ FCM notifications fully implemented and tested
+- ✅ Location picker modal implemented for meeting creation
+- 📋 Shake to MeetUp feature planned (see `docs/SHAKE_TO_MEETUP_PLAN.md`)
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_provider.dart';
 import 'widgets/location_settings_widget.dart';
+import 'points_history_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -312,6 +313,21 @@ class ProfileScreen extends StatelessWidget {
                   subtitle: 'View your travel history',
                   onTap: () {
                     // TODO: Navigate to location history
+                  },
+                ),
+                _buildDivider(),
+                _buildModernMenuItem(
+                  context,
+                  icon: Icons.star_rounded,
+                  title: 'Points History',
+                  subtitle: 'View your points and transactions',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PointsHistoryScreen(),
+                      ),
+                    );
                   },
                 ),
               ],

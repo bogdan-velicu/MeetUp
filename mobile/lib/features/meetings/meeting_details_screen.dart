@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/meetings/meetings_service.dart';
+import '../../services/points/points_service.dart';
 import '../../models/meeting.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_provider.dart';
@@ -15,8 +16,10 @@ class MeetingDetailsScreen extends StatefulWidget {
 
 class _MeetingDetailsScreenState extends State<MeetingDetailsScreen> {
   final MeetingsService _meetingsService = MeetingsService();
+  final PointsService _pointsService = PointsService();
   Meeting? _meeting;
   bool _isLoading = true;
+  bool _isConfirming = false;
   String? _error;
 
   @override
@@ -89,6 +92,164 @@ class _MeetingDetailsScreenState extends State<MeetingDetailsScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final currentUser = authProvider.currentUser;
     return currentUser != null && currentUser['id'] == _meeting!.organizerId;
+  }
+
+  bool _isParticipant() {
+    if (_meeting == null) return false;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.currentUser;
+    if (currentUser == null) return false;
+    return _meeting!.participants.any((p) => p.userId == currentUser['id']);
+  }
+
+  Future<void> _confirmMeeting() async {
+    if (_meeting == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Meeting'),
+        content: const Text(
+          'Confirm this meeting to receive 50 points! This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+            ),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _isConfirming = true;
+      });
+
+      try {
+        final result = await _pointsService.confirmMeeting(_meeting!.id);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '✅ Meeting confirmed! You earned ${result['points']} points!',
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+          
+          // Reload meeting to update status
+          await _loadMeeting();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error confirming meeting: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isConfirming = false;
+          });
+        }
+      }
+    }
+  }
+
+  Widget _buildConfirmMeetingButton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.amber,
+            Colors.orange,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.amber.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.star, color: Colors.white, size: 28),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Confirm Meeting',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Earn 50 points!',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isConfirming ? null : _confirmMeeting,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.amber[800],
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: _isConfirming
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'Confirm & Earn Points',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -172,6 +333,11 @@ class _MeetingDetailsScreenState extends State<MeetingDetailsScreen> {
                             _buildInfoRow(Icons.location_on, 'Location', _meeting!.address!),
                           ],
                           const SizedBox(height: 24),
+                          // Meeting Confirmation Button (for participants, not organizer)
+                          if (!_isOrganizer() && _isParticipant() && _meeting!.status == 'pending')
+                            _buildConfirmMeetingButton(),
+                          if (!_isOrganizer() && _isParticipant() && _meeting!.status == 'pending')
+                            const SizedBox(height: 24),
                           const Text(
                             'Participants',
                             style: TextStyle(
