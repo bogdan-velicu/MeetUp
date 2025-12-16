@@ -13,6 +13,7 @@ class AppConstants {
   static const String tokenKey = 'auth_token';
   static const String refreshTokenKey = 'refresh_token';
   static const String userIdKey = 'user_id';
+  static const String customBackendUrlKey = 'custom_backend_url';
 
   // Location
   static const int defaultLocationUpdateInterval = 15; // minutes

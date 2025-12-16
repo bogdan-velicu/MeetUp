@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 
 class ApiClient {
@@ -12,13 +13,13 @@ class ApiClient {
   }
   
   ApiClient._internal() {
-    // Always use AppConstants.baseUrl for production builds
-    // This ensures consistent behavior and avoids .env file issues
+    _initializeDioSync();
+  }
+  
+  void _initializeDioSync() {
+    // Start with default URL, will be updated async if custom URL exists
     final baseUrl = AppConstants.baseUrl;
     final fullBaseUrl = '$baseUrl${AppConstants.apiVersion}';
-    
-    // Debug: Log the API URL being used (remove in production if needed)
-    print('🌐 API Base URL: $fullBaseUrl');
     
     _dio = Dio(BaseOptions(
       baseUrl: fullBaseUrl,
@@ -36,6 +37,64 @@ class ApiClient {
       responseBody: true,
       error: true,
     ));
+    
+    // Load custom URL asynchronously and update if needed
+    _loadCustomUrl();
+  }
+  
+  Future<void> _loadCustomUrl() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final customUrl = prefs.getString(AppConstants.customBackendUrlKey);
+      if (customUrl != null && customUrl.isNotEmpty) {
+        final fullBaseUrl = '$customUrl${AppConstants.apiVersion}';
+        _dio.options.baseUrl = fullBaseUrl;
+        print('🔧 Using custom backend URL: $customUrl');
+      } else {
+        print('🌐 Using default backend URL: ${AppConstants.baseUrl}');
+      }
+    } catch (e) {
+      print('⚠️ Error loading custom URL: $e');
+    }
+  }
+  
+  // Reinitialize Dio with new base URL
+  Future<void> updateBaseUrl(String? customUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (customUrl != null && customUrl.isNotEmpty) {
+      // Validate URL format
+      if (!customUrl.startsWith('http://') && !customUrl.startsWith('https://')) {
+        throw Exception('URL must start with http:// or https://');
+      }
+      await prefs.setString(AppConstants.customBackendUrlKey, customUrl);
+    } else {
+      await prefs.remove(AppConstants.customBackendUrlKey);
+    }
+    
+    // Update Dio base URL
+    final baseUrl = customUrl ?? AppConstants.baseUrl;
+    final fullBaseUrl = '$baseUrl${AppConstants.apiVersion}';
+    _dio.options.baseUrl = fullBaseUrl;
+    
+    print('🌐 API Base URL updated to: $fullBaseUrl');
+    
+    // Preserve auth token if it exists
+    final token = await _getStoredToken();
+    if (token != null) {
+      setAuthToken(token);
+    }
+  }
+  
+  Future<String?> _getStoredToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(AppConstants.tokenKey);
+  }
+  
+  // Get current base URL (for display)
+  Future<String> getCurrentBaseUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    final customUrl = prefs.getString(AppConstants.customBackendUrlKey);
+    return customUrl ?? AppConstants.baseUrl;
   }
   
   Dio get dio => _dio;
