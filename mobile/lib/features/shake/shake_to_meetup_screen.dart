@@ -163,32 +163,23 @@ class _ShakeToMeetUpScreenState extends State<ShakeToMeetUpScreen> {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Text('Meeting created successfully!'),
-            const SizedBox(height: 8),
             Text(
               'You earned ${result['points_awarded'] ?? 50} points!',
               style: TextStyle(
                 color: Colors.amber[800],
                 fontWeight: FontWeight.bold,
+                fontSize: 16,
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context); // Go back
             },
             child: const Text('OK'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Go back
-              // TODO: Navigate to meeting details
-            },
-            child: const Text('View Meeting'),
           ),
         ],
       ),

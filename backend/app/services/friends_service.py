@@ -78,18 +78,34 @@ class FriendsService:
     
     def accept_friend_request(self, user_id: int, friend_id: int) -> dict:
         """Accept a friend request by changing status to accepted."""
-        # Find the pending friend request where friend_id sent request to user_id
+        # Find the pending friend request (checks both directions)
+        # When user A sends request to user B: user_id=A, friend_id=B
+        # When B accepts: we need to find (A, B) and update it
         friendship = self.friendship_repo.get_friendship(friend_id, user_id)
+        if not friendship:
+            # Try the other direction
+            friendship = self.friendship_repo.get_friendship(user_id, friend_id)
+        
         if not friendship or friendship.status != "pending":
             raise NotFoundError("Pending friend request not found")
         
-        # Update status to accepted
-        friendship = self.friendship_repo.update_friendship_status(friend_id, user_id, "accepted")
+        # Update the found friendship to accepted
+        # Use the actual friendship direction (user_id, friend_id) from the database
+        friendship = self.friendship_repo.update_friendship_status(
+            friendship.user_id, 
+            friendship.friend_id, 
+            "accepted"
+        )
         
-        # Create reciprocal friendship (both directions)
+        # Ensure reciprocal friendship exists (both directions should be accepted)
+        # This ensures both users see each other in their friends list
         reciprocal = self.friendship_repo.get_friendship(user_id, friend_id)
         if not reciprocal:
+            # Create the reverse direction if it doesn't exist
             self.friendship_repo.create(user_id, friend_id, status="accepted", is_close_friend=False)
+        elif reciprocal.status != "accepted":
+            # Update existing reciprocal to accepted
+            self.friendship_repo.update_friendship_status(user_id, friend_id, "accepted")
         
         # Send notification to the original sender
         try:

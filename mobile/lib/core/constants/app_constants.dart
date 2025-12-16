@@ -1,11 +1,13 @@
 class AppConstants {
   // API Configuration
-  static const String baseUrl = 'http://192.168.1.143:8000';
+  // Production: Use DDNS for external access
+  static const String baseUrl = 'http://zotrix.ddns.net:9000';
+  // For local testing, use: 'http://192.168.1.143:9000'
   static const String apiVersion = '/api/v1';
 
   // App Info
   static const String appName = 'MeetUp!';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.0.3';
 
   // Storage Keys
   static const String tokenKey = 'auth_token';

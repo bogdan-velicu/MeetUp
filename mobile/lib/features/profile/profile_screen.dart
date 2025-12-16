@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_provider.dart';
+import '../../core/constants/app_constants.dart';
 import 'widgets/location_settings_widget.dart';
 import 'points_history_screen.dart';
 import '../shake/shake_to_meetup_screen.dart';
@@ -173,6 +174,20 @@ class ProfileScreen extends StatelessWidget {
         
         // Logout Button with proper bottom padding
         _buildLogoutButton(context, authProvider),
+        
+        // Version info
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Text(
+            'Version ${AppConstants.appVersion}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
         
         // Bottom padding for navigation bar
         SizedBox(height: MediaQuery.of(context).padding.bottom + 100),

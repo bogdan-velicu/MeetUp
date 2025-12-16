@@ -9,5 +9,5 @@ source venv/bin/activate
 
 # Start server on 0.0.0.0 to accept connections from network
 # Replace 192.168.1.143 with your actual local network IP if needed
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 9000 --reload
 

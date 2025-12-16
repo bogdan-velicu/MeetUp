@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../../services/friends/friends_service.dart';
 
 class FriendRequestsScreen extends StatefulWidget {
-  const FriendRequestsScreen({super.key});
+  final VoidCallback? onFriendRequestAccepted;
+  
+  const FriendRequestsScreen({super.key, this.onFriendRequestAccepted});
 
   @override
   State<FriendRequestsScreen> createState() => _FriendRequestsScreenState();
@@ -75,6 +77,11 @@ class _FriendRequestsScreenState extends State<FriendRequestsScreen> with Single
         
         // Reload all requests
         await _loadAllRequests();
+        
+        // Notify parent to refresh friends list and map
+        if (widget.onFriendRequestAccepted != null) {
+          widget.onFriendRequestAccepted!();
+        }
       }
     } catch (e) {
       if (mounted) {

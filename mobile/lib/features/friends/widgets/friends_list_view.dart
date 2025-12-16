@@ -5,8 +5,9 @@ import 'friend_options_bottom_sheet.dart';
 
 class FriendsListView extends StatefulWidget {
   final Function(int)? onViewFriendOnMap;
+  final VoidCallback? onRefreshRequested;
   
-  const FriendsListView({super.key, this.onViewFriendOnMap});
+  const FriendsListView({super.key, this.onViewFriendOnMap, this.onRefreshRequested});
 
   @override
   State<FriendsListView> createState() => _FriendsListViewState();
@@ -34,6 +35,15 @@ class _FriendsListViewState extends State<FriendsListView> {
         _loadFriends();
       }
     });
+  }
+
+  @override
+  void didUpdateWidget(FriendsListView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refresh if refresh was requested
+    if (widget.onRefreshRequested != oldWidget.onRefreshRequested && widget.onRefreshRequested != null) {
+      _loadFriends();
+    }
   }
 
   // Public method to refresh friends list

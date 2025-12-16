@@ -218,13 +218,17 @@ class ShakeService:
         # Create meeting
         from app.schemas.meeting import MeetingCreate
         
+        # Schedule meeting 1 minute in the future to pass validation
+        # (MeetingsService requires scheduled_at to be in the future)
+        scheduled_time = datetime.utcnow() + timedelta(minutes=1)
+        
         meeting_data = MeetingCreate(
             title=f"Spontaneous MeetUp with {friend.full_name or friend.username}",
             description="Created via Shake to MeetUp! 🎉",
             address=f"Near {midpoint_lat:.6f}, {midpoint_lon:.6f}",
             latitude=str(midpoint_lat),
             longitude=str(midpoint_lon),
-            scheduled_at=datetime.utcnow(),  # Immediate meeting
+            scheduled_at=scheduled_time,
             participant_ids=[session2.user_id]
         )
         

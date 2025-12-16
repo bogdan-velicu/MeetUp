@@ -243,8 +243,7 @@ class NotificationService:
         
         data = {
             "type": "shake_match",
-            "meeting_id": str(meeting_id),
-            "action": "view_meeting"
+            "meeting_id": str(meeting_id)
         }
         
         success = self.fcm_client.send_notification(

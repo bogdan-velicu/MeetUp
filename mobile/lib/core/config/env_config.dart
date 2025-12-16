@@ -1,19 +1,24 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class EnvConfig {
+  static bool _loaded = false;
+  
   static Future<void> load() async {
-    await dotenv.load(fileName: ".env");
+    if (_loaded) return;
+    try {
+      await dotenv.load(fileName: ".env");
+      _loaded = true;
+    } catch (e) {
+      // .env file not found or error loading - that's okay for production
+      // We'll use AppConstants.baseUrl instead
+      _loaded = true;
+    }
   }
   
   static String get googleMapsApiKey => dotenv.env['GOOGLE_CLOUD_KEY'] ?? '';
   
-  static String get apiBaseUrl {
-    final url = dotenv.env['API_BASE_URL'];
-    if (url != null && url.isNotEmpty) {
-      return url;
-    }
-    // Fallback - you can change this to your computer's IP for testing
-    return 'http://192.168.1.143:8000';
-  }
+  // Note: API base URL is now always taken from AppConstants.baseUrl
+  // This ensures production builds use the correct DDNS URL
+  // and avoids issues with .env files containing old IPs
 }
 

@@ -36,21 +36,46 @@ class FriendshipRepository:
     
     def get_friends(self, user_id: int, include_close_only: bool = False, status_filter: str = "accepted") -> List[User]:
         """Get all friends of a user with specific status."""
-        query = self.db.query(User).join(
-            Friendship,
-            or_(
-                and_(Friendship.user_id == user_id, User.id == Friendship.friend_id),
-                and_(Friendship.friend_id == user_id, User.id == Friendship.user_id)
+        # Get friendships where user is either user_id or friend_id
+        # Use a more explicit query to ensure we get all friends correctly
+        friendships = self.db.query(Friendship).filter(
+            and_(
+                or_(
+                    Friendship.user_id == user_id,
+                    Friendship.friend_id == user_id
+                ),
+                Friendship.status == status_filter
             )
-        ).filter(Friendship.status == status_filter)
+        ).all()
+        
+        # Extract friend IDs
+        friend_ids = set()
+        for friendship in friendships:
+            if friendship.user_id == user_id:
+                friend_ids.add(friendship.friend_id)
+            else:
+                friend_ids.add(friendship.user_id)
+        
+        if not friend_ids:
+            return []
+        
+        # Get users and apply close friends filter if needed
+        query = self.db.query(User).filter(User.id.in_(friend_ids))
         
         if include_close_only:
-            query = query.filter(
-                or_(
-                    and_(Friendship.user_id == user_id, Friendship.is_close_friend == True),
-                    and_(Friendship.friend_id == user_id, Friendship.is_close_friend == True)
-                )
-            )
+            # Filter to only close friends
+            close_friend_ids = set()
+            for friendship in friendships:
+                if friendship.is_close_friend:
+                    if friendship.user_id == user_id:
+                        close_friend_ids.add(friendship.friend_id)
+                    else:
+                        close_friend_ids.add(friendship.user_id)
+            
+            if close_friend_ids:
+                query = query.filter(User.id.in_(close_friend_ids))
+            else:
+                return []  # No close friends
         
         return query.all()
     

@@ -31,6 +31,10 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
   }
 
+  MapScreenState? getMapScreenState() {
+    return _mapScreenKey.currentState;
+  }
+
   void switchToMapAndFocusFriend(int friendId) {
     debugPrint('=== switchToMapAndFocusFriend START ===');
     debugPrint('switchToMapAndFocusFriend called for friendId: $friendId');

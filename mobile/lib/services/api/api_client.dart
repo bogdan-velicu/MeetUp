@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import '../../core/config/env_config.dart';
 import '../../core/constants/app_constants.dart';
 
 class ApiClient {
@@ -13,13 +12,16 @@ class ApiClient {
   }
   
   ApiClient._internal() {
-    // Use API_BASE_URL from .env if available, otherwise fallback to AppConstants
-    final baseUrl = EnvConfig.apiBaseUrl.isNotEmpty 
-        ? EnvConfig.apiBaseUrl 
-        : AppConstants.baseUrl;
+    // Always use AppConstants.baseUrl for production builds
+    // This ensures consistent behavior and avoids .env file issues
+    final baseUrl = AppConstants.baseUrl;
+    final fullBaseUrl = '$baseUrl${AppConstants.apiVersion}';
+    
+    // Debug: Log the API URL being used (remove in production if needed)
+    print('🌐 API Base URL: $fullBaseUrl');
     
     _dio = Dio(BaseOptions(
-      baseUrl: '$baseUrl${AppConstants.apiVersion}',
+      baseUrl: fullBaseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {

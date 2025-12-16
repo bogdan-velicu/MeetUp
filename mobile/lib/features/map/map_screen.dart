@@ -101,6 +101,11 @@ class MapScreenState extends State<MapScreen> {
       _friendsLoadedCompleter = null;
     }
   }
+
+  // Public method to refresh friends locations (called when friend request is accepted)
+  Future<void> refreshFriendsLocations() async {
+    await _loadFriendsLocations();
+  }
   
   Future<void> _waitForFriendsLoaded({Duration timeout = const Duration(seconds: 5)}) async {
     if (_friends.isNotEmpty) {

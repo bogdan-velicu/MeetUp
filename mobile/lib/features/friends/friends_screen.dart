@@ -14,6 +14,8 @@ class FriendsScreen extends StatefulWidget {
 
 class _FriendsScreenState extends State<FriendsScreen>
     with WidgetsBindingObserver {
+  int _refreshKey = 0;
+  
   @override
   void initState() {
     super.initState();
@@ -30,7 +32,20 @@ class _FriendsScreenState extends State<FriendsScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       // Refresh when app resumes
-      setState(() {});
+      _refreshFriendsList();
+    }
+  }
+
+  void _refreshFriendsList() {
+    setState(() {
+      _refreshKey++; // Force rebuild to trigger refresh
+    });
+    
+    // Also refresh map screen if it exists
+    final mainNav = context.findAncestorStateOfType<MainNavigationScreenState>();
+    if (mainNav != null) {
+      final mapState = mainNav.getMapScreenState();
+      mapState?.refreshFriendsLocations();
     }
   }
 
@@ -50,11 +65,13 @@ class _FriendsScreenState extends State<FriendsScreen>
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const FriendRequestsScreen(),
+                  builder: (context) => FriendRequestsScreen(
+                    onFriendRequestAccepted: _refreshFriendsList,
+                  ),
                 ),
               );
               // Refresh friends list when returning from requests screen
-              // The FriendsListView will auto-refresh via didChangeDependencies
+              _refreshFriendsList();
             },
           ),
           IconButton(
@@ -94,6 +111,8 @@ class _FriendsScreenState extends State<FriendsScreen>
           ),
         ),
         child: FriendsListView(
+          key: ValueKey(_refreshKey),
+          onRefreshRequested: _refreshKey > 0 ? () {} : null,
           onViewFriendOnMap: (friendId) {
             // Find MainNavigationScreen from FriendsScreen context
             final mainNav = context

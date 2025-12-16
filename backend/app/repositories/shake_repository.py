@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, func, cast
+from sqlalchemy.types import Float
 from app.models.shake_session import ShakeSession, ShakeSessionStatus
 from typing import Optional, List
 from datetime import datetime, timedelta
@@ -69,9 +70,9 @@ class ShakeRepository:
                 ShakeSession.status == ShakeSessionStatus.ACTIVE,
                 ShakeSession.expires_at > datetime.utcnow(),
                 ShakeSession.created_at >= time_threshold,
-                # Bounding box filter
-                func.abs(func.cast(ShakeSession.latitude, func.Float) - latitude) <= lat_delta,
-                func.abs(func.cast(ShakeSession.longitude, func.Float) - longitude) <= lon_delta,
+                # Bounding box filter - cast string columns to float for comparison
+                func.abs(cast(ShakeSession.latitude, Float) - latitude) <= lat_delta,
+                func.abs(cast(ShakeSession.longitude, Float) - longitude) <= lon_delta,
             )
         ).all()
         

@@ -19,8 +19,8 @@ class MeetingsService:
     
     def create_meeting(self, organizer_id: int, meeting_data: MeetingCreate) -> Dict:
         """Create a new meeting with participants."""
-        # Validate scheduled_at is in the future
-        if meeting_data.scheduled_at <= datetime.now():
+        # Validate scheduled_at is in the future (use UTC for consistency)
+        if meeting_data.scheduled_at <= datetime.utcnow():
             raise ValidationError("Meeting must be scheduled in the future")
         
         # Validate participants are friends
