@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/widgets/app_logo.dart';
 import 'widgets/friends_list_view.dart';
 import 'add_friend_screen.dart';
 import 'friend_requests_screen.dart';
@@ -54,29 +53,22 @@ class _FriendsScreenState extends State<FriendsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const AppLogo(width: 28, height: 28),
-            const SizedBox(width: 12),
-            const Text('Friends'),
-          ],
-        ),
         automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Theme.of(context).colorScheme.primary,
-                Theme.of(context).colorScheme.primary.withOpacity(0.8),
-              ],
-            ),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
         ),
-        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),

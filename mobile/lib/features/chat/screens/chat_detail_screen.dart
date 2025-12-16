@@ -128,6 +128,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Row(
           children: [
             CircleAvatar(
@@ -149,7 +168,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 children: [
                   Text(
                     otherUserName,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   Consumer<ChatProvider>(
                     builder: (context, provider, child) {
@@ -158,7 +177,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                       if (isTyping) {
                         return const Text(
                           'typing...',
-                          style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+                          style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
                         );
                       } else if (isConnected) {
                         return const Text(

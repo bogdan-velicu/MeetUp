@@ -13,8 +13,9 @@ class AppTheme {
   static const Color warningColor = Color(0xFFF59E0B); // Orange
   static const Color backgroundColor = Color(0xFFF5F7FA); // Light gray
   static const Color surfaceColor = Colors.white;
-  static const Color textPrimary = Color(0xFF1A1F36); // Dark text
-  static const Color textSecondary = Color(0xFF6B7280); // Gray text
+  static const Color textPrimary = Color(0xFF0F172A); // Darker text for better contrast
+  static const Color textSecondary = Color(0xFF64748B); // Better contrast gray
+  static const Color textTertiary = Color(0xFF94A3B8); // Lighter gray for hints
   
   // Gradient colors
   static const LinearGradient primaryGradient = LinearGradient(
@@ -43,16 +44,19 @@ class AppTheme {
       onSurface: textPrimary,
     ),
     scaffoldBackgroundColor: backgroundColor,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: surfaceColor,
+    appBarTheme: AppBarTheme(
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      centerTitle: true,
-      iconTheme: IconThemeData(color: textPrimary),
-      titleTextStyle: TextStyle(
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      iconTheme: const IconThemeData(color: textPrimary),
+      titleTextStyle: const TextStyle(
         color: textPrimary,
         fontSize: 20,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w600,
       ),
+      // Modern transparent app bar
+      surfaceTintColor: Colors.transparent,
     ),
     cardTheme: CardThemeData(
       elevation: 2,
@@ -93,14 +97,18 @@ class AppTheme {
       ),
     ),
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: textPrimary, fontSize: 32, fontWeight: FontWeight.bold),
-      displayMedium: TextStyle(color: textPrimary, fontSize: 28, fontWeight: FontWeight.bold),
-      displaySmall: TextStyle(color: textPrimary, fontSize: 24, fontWeight: FontWeight.bold),
-      headlineMedium: TextStyle(color: textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
-      titleLarge: TextStyle(color: textPrimary, fontSize: 18, fontWeight: FontWeight.w600),
-      bodyLarge: TextStyle(color: textPrimary, fontSize: 16),
-      bodyMedium: TextStyle(color: textSecondary, fontSize: 14),
-      bodySmall: TextStyle(color: textSecondary, fontSize: 12),
+      displayLarge: TextStyle(color: textPrimary, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+      displayMedium: TextStyle(color: textPrimary, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+      displaySmall: TextStyle(color: textPrimary, fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -0.3),
+      headlineMedium: TextStyle(color: textPrimary, fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.2),
+      titleLarge: TextStyle(color: textPrimary, fontSize: 18, fontWeight: FontWeight.w600, letterSpacing: 0),
+      titleMedium: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: 0),
+      bodyLarge: TextStyle(color: textPrimary, fontSize: 16, height: 1.5, letterSpacing: 0),
+      bodyMedium: TextStyle(color: textPrimary, fontSize: 14, height: 1.5, letterSpacing: 0),
+      bodySmall: TextStyle(color: textSecondary, fontSize: 12, height: 1.4, letterSpacing: 0),
+      labelLarge: TextStyle(color: textPrimary, fontSize: 14, fontWeight: FontWeight.w500, letterSpacing: 0.1),
+      labelMedium: TextStyle(color: textSecondary, fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 0.1),
+      labelSmall: TextStyle(color: textTertiary, fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 0.1),
     ),
   );
 }
