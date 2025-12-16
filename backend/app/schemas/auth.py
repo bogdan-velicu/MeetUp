@@ -10,8 +10,17 @@ class UserRegister(BaseModel):
     phone_number: Optional[str] = Field(None, max_length=30)
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: Optional[EmailStr] = None  # Can be email or username
+    username: Optional[str] = None  # Can be email or username
     password: str  # No max_length - we handle long passwords
+    
+    def get_identifier(self) -> str:
+        """Get the login identifier (email or username)."""
+        if self.email:
+            return self.email
+        if self.username:
+            return self.username
+        raise ValueError("Either email or username must be provided")
 
 class Token(BaseModel):
     access_token: str

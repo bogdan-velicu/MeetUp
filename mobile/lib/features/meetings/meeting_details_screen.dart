@@ -102,6 +102,13 @@ class _MeetingDetailsScreenState extends State<MeetingDetailsScreen> {
     return _meeting!.participants.any((p) => p.userId == currentUser['id']);
   }
 
+  bool _isShakeMeeting() {
+    if (_meeting == null) return false;
+    // Check if this is a shake meeting by looking at the description
+    return _meeting!.description != null && 
+           _meeting!.description!.contains('Shake to MeetUp');
+  }
+
   Future<void> _confirmMeeting() async {
     if (_meeting == null) return;
 
@@ -333,10 +340,10 @@ class _MeetingDetailsScreenState extends State<MeetingDetailsScreen> {
                             _buildInfoRow(Icons.location_on, 'Location', _meeting!.address!),
                           ],
                           const SizedBox(height: 24),
-                          // Meeting Confirmation Button (for participants, not organizer)
-                          if (!_isOrganizer() && _isParticipant() && _meeting!.status == 'pending')
+                          // Meeting Confirmation Button (for participants, not organizer, and not shake meetings)
+                          if (!_isOrganizer() && _isParticipant() && _meeting!.status == 'pending' && !_isShakeMeeting())
                             _buildConfirmMeetingButton(),
-                          if (!_isOrganizer() && _isParticipant() && _meeting!.status == 'pending')
+                          if (!_isOrganizer() && _isParticipant() && _meeting!.status == 'pending' && !_isShakeMeeting())
                             const SizedBox(height: 24),
                           const Text(
                             'Participants',

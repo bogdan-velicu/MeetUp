@@ -211,9 +211,44 @@ class ShakeService:
         midpoint_lat = (lat1 + lat2) / 2
         midpoint_lon = (lon1 + lon2) / 2
         
-        # Get organizer name
-        organizer = self.user_repo.get_by_id(session1.user_id)
-        organizer_name = organizer.full_name if organizer and organizer.full_name else organizer.username if organizer else "Someone"
+        # Use consistent organizer: always use the user with lower ID
+        # This ensures both users see the same organizer
+        organizer_id = min(session1.user_id, session2.user_id)
+        participant_id = max(session1.user_id, session2.user_id)
+        
+        # Get friend name for title (the other user, not the organizer)
+        if organizer_id == session1.user_id:
+            friend_name = friend.full_name or friend.username
+        else:
+            # Get the other user's name
+            other_user = self.user_repo.get_by_id(session1.user_id)
+            friend_name = (other_user.full_name if other_user and other_user.full_name else other_user.username) if other_user else "Friend"
+        
+        # Try to get address via reverse geocoding (fallback to coordinates)
+        address = f"Near {midpoint_lat:.6f}, {midpoint_lon:.6f}"
+        try:
+            import requests
+            # Use a free reverse geocoding service (OpenStreetMap Nominatim)
+            # Note: This is a simple implementation, you might want to use a proper geocoding service
+            geocode_url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={midpoint_lat}&lon={midpoint_lon}&zoom=18&addressdetails=1"
+            response = requests.get(geocode_url, headers={'User-Agent': 'MeetUpApp/1.0'}, timeout=2)
+            if response.status_code == 200:
+                data = response.json()
+                if 'address' in data:
+                    addr = data['address']
+                    parts = []
+                    if 'road' in addr:
+                        parts.append(addr['road'])
+                    if 'house_number' in addr:
+                        parts.insert(0, addr['house_number'])
+                    if 'city' in addr or 'town' in addr or 'village' in addr:
+                        city = addr.get('city') or addr.get('town') or addr.get('village')
+                        if city:
+                            parts.append(city)
+                    if parts:
+                        address = ', '.join(parts)
+        except Exception as e:
+            logger.warning(f"Failed to geocode address: {e}, using coordinates")
         
         # Create meeting
         from app.schemas.meeting import MeetingCreate
@@ -223,16 +258,16 @@ class ShakeService:
         scheduled_time = datetime.utcnow() + timedelta(minutes=1)
         
         meeting_data = MeetingCreate(
-            title=f"Spontaneous MeetUp with {friend.full_name or friend.username}",
+            title=f"Shake MeetUp with {friend_name}",
             description="Created via Shake to MeetUp! 🎉",
-            address=f"Near {midpoint_lat:.6f}, {midpoint_lon:.6f}",
+            address=address,
             latitude=str(midpoint_lat),
             longitude=str(midpoint_lon),
             scheduled_at=scheduled_time,
-            participant_ids=[session2.user_id]
+            participant_ids=[participant_id]
         )
         
-        meeting = self.meetings_service.create_meeting(session1.user_id, meeting_data)
+        meeting = self.meetings_service.create_meeting(organizer_id, meeting_data)
         
         # Update meeting status to confirmed (since both agreed)
         # Note: We might want to add a method to update status directly

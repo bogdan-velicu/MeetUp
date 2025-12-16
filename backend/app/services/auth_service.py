@@ -50,17 +50,24 @@ class AuthService:
         return user_response, token
     
     def login(self, login_data: UserLogin) -> tuple[UserResponse, Token]:
-        """Authenticate user and return token."""
-        user = self.user_repo.get_by_email(login_data.email)
+        """Authenticate user and return token. Accepts email or username."""
+        # Try to find user by email first, then by username
+        user = None
+        if login_data.email:
+            user = self.user_repo.get_by_email(login_data.email)
+        elif login_data.username:
+            user = self.user_repo.get_by_username(login_data.username)
+        else:
+            raise ValidationError("Either email or username must be provided")
         
         if not user:
-            raise UnauthorizedError("Invalid email or password")
+            raise UnauthorizedError("Invalid email/username or password")
         
         if not user.is_active:
             raise UnauthorizedError("User account is inactive")
         
         if not self.user_repo.verify_password(user, login_data.password):
-            raise UnauthorizedError("Invalid email or password")
+            raise UnauthorizedError("Invalid email/username or password")
         
         # Update last login
         self.user_repo.update_last_login(user.id)

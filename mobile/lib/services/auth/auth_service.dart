@@ -87,16 +87,25 @@ class AuthService {
     }
   }
   
-  // Login user
+  // Login user (accepts email or username)
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
   }) async {
     try {
-      final response = await _apiClient.post('/auth/login', data: {
-        'email': email,
+      // Determine if identifier is email or username
+      final isEmail = email.contains('@');
+      final data = {
         'password': password,
-      });
+      };
+      
+      if (isEmail) {
+        data['email'] = email;
+      } else {
+        data['username'] = email;
+      }
+      
+      final response = await _apiClient.post('/auth/login', data: data);
       
       if (response.statusCode == 200) {
         final data = response.data;
