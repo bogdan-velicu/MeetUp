@@ -10,6 +10,7 @@ from .mission import Mission, UserMission
 from .event import Event, EventParticipant
 from .location import Location, LocationReview, LocationCampaign
 from .shake_session import ShakeSession, ShakeSessionStatus
+from .chat import Conversation, Message
 
 __all__ = [
     "User",
@@ -35,5 +36,7 @@ __all__ = [
     "LocationCampaign",
     "ShakeSession",
     "ShakeSessionStatus",
+    "Conversation",
+    "Message",
 ]
 

@@ -6,7 +6,7 @@ from app.core.middleware import exception_handler, general_exception_handler
 from app.core.exceptions import MeetUpException
 from app.core.logging_config import setup_logging
 from app.core.firebase_admin import initialize_firebase
-from app.api.v1 import auth, friends, location, users, meetings, invitations, notifications, points, shake
+from app.api.v1 import auth, friends, location, users, meetings, invitations, notifications, points, shake, chat
 
 logger = setup_logging()
 
@@ -45,6 +45,7 @@ app.include_router(invitations.router, prefix="/api/v1")
 app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(points.router, prefix="/api/v1")
 app.include_router(shake.router, prefix="/api/v1")
+app.include_router(chat.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

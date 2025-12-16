@@ -271,6 +271,7 @@ class NotificationService:
             "meeting_updates": True,
             "invitation_responses": True,
             "friend_requests": True,
+            "chat_messages": True,
             "push_enabled": True
         }
     
@@ -370,4 +371,54 @@ class NotificationService:
             logger.info(f"Sent friend request accepted notification to user {sender_id}")
         else:
             logger.warning(f"Failed to send friend request accepted notification to user {sender_id}")
+    
+    def send_chat_message_notification(
+        self,
+        recipient_id: int,
+        sender_name: str,
+        message_preview: str,
+        conversation_id: int
+    ):
+        """Send notification when a user receives a chat message.
+        
+        Args:
+            recipient_id: ID of the user receiving the message
+            sender_name: Name of the user who sent the message
+            message_preview: Preview of the message content
+            conversation_id: ID of the conversation
+        """
+        # Check notification preferences
+        prefs = self.get_user_notification_preferences(recipient_id)
+        if not prefs.get("chat_messages", True) or not prefs.get("push_enabled", True):
+            logger.info(f"User {recipient_id} has disabled chat message notifications")
+            return
+        
+        # Get recipient's FCM token
+        user = self.user_repo.get_by_id(recipient_id)
+        if not user or not user.fcm_token:
+            logger.warning(f"User {recipient_id} does not have an FCM token registered")
+            return
+        
+        # Prepare notification
+        title = sender_name
+        body = message_preview
+        
+        data = {
+            "type": "chat_message",
+            "conversation_id": str(conversation_id),
+            "action": "view_chat"
+        }
+        
+        # Send notification
+        success = self.fcm_client.send_notification(
+            fcm_token=user.fcm_token,
+            title=title,
+            body=body,
+            data=data
+        )
+        
+        if success:
+            logger.info(f"Sent chat message notification to user {recipient_id} for conversation {conversation_id}")
+        else:
+            logger.warning(f"Failed to send chat message notification to user {recipient_id}")
 
