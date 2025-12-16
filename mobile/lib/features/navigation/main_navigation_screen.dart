@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../chat/chat_screen.dart';
 import '../friends/friends_screen.dart';
 import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
 import '../meetings/meetings_list_screen.dart';
+import '../../services/chat/chat_provider.dart';
 import 'widgets/animated_bottom_nav_item.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -130,15 +132,24 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  AnimatedBottomNavItem(
-                    icon: Icons.chat_outlined,
-                    activeIcon: Icons.chat,
-                    label: 'Chat',
-                    isActive: _currentIndex == 0,
-                    isCenter: false,
-                    onTap: () => _onTabTapped(0),
-                    activeColor: activeColor,
-                    inactiveColor: inactiveColor,
+                  Consumer<ChatProvider>(
+                    builder: (context, chatProvider, child) {
+                      return AnimatedBottomNavItem(
+                        icon: Icons.chat_outlined,
+                        activeIcon: Icons.chat,
+                        label: 'Chat',
+                        isActive: _currentIndex == 0,
+                        isCenter: false,
+                        onTap: () {
+                          _onTabTapped(0);
+                          // Refresh unread count when opening chat tab
+                          chatProvider.loadUnreadCount();
+                        },
+                        activeColor: activeColor,
+                        inactiveColor: inactiveColor,
+                        badgeCount: chatProvider.unreadCount > 0 ? chatProvider.unreadCount : null,
+                      );
+                    },
                   ),
                   AnimatedBottomNavItem(
                     icon: Icons.people_outline,

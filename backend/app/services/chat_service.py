@@ -181,6 +181,7 @@ class ChatService:
         for msg in messages:
             message_list.append({
                 "id": msg.id,
+                "conversation_id": msg.conversation_id,
                 "sender_id": msg.sender_id,
                 "content": msg.content,
                 "message_type": msg.message_type,

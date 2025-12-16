@@ -10,6 +10,7 @@ import 'core/config/env_config.dart';
 import 'services/auth/auth_provider.dart';
 import 'services/auth/auth_service.dart';
 import 'services/notifications/fcm_service.dart';
+import 'services/chat/chat_provider.dart';
 
 // Background message handler (must be top-level)
 @pragma('vm:entry-point')
@@ -58,6 +59,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
         title: 'MeetUp!',

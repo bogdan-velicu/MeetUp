@@ -9,6 +9,7 @@ class AnimatedBottomNavItem extends StatelessWidget {
   final VoidCallback onTap;
   final Color activeColor;
   final Color inactiveColor;
+  final int? badgeCount;
 
   const AnimatedBottomNavItem({
     super.key,
@@ -20,6 +21,7 @@ class AnimatedBottomNavItem extends StatelessWidget {
     required this.onTap,
     required this.activeColor,
     required this.inactiveColor,
+    this.badgeCount,
   });
 
   @override
@@ -70,26 +72,57 @@ class AnimatedBottomNavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              transform: Matrix4.identity()
-                ..scale(isActive ? 1.1 : 1.0),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                transitionBuilder: (child, animation) {
-                  return ScaleTransition(
-                    scale: animation,
-                    child: child,
-                  );
-                },
-                child: Icon(
-                  isActive ? activeIcon : icon,
-                  key: ValueKey(isActive),
-                  color: isActive ? activeColor : inactiveColor,
-                  size: 24,
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  transform: Matrix4.identity()
+                    ..scale(isActive ? 1.1 : 1.0),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (child, animation) {
+                      return ScaleTransition(
+                        scale: animation,
+                        child: child,
+                      );
+                    },
+                    child: Icon(
+                      isActive ? activeIcon : icon,
+                      key: ValueKey(isActive),
+                      color: isActive ? activeColor : inactiveColor,
+                      size: 24,
+                    ),
+                  ),
                 ),
-              ),
+                if (badgeCount != null && badgeCount! > 0)
+                  Positioned(
+                    right: -8,
+                    top: -8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        badgeCount! > 99 ? '99+' : badgeCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(

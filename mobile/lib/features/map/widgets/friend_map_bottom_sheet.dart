@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../models/friend.dart';
+import '../../../services/chat/chat_provider.dart';
+import '../../chat/screens/chat_detail_screen.dart';
 
 class FriendMapBottomSheet extends StatelessWidget {
   final Friend friend;
@@ -113,9 +116,27 @@ class FriendMapBottomSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed: () async {
                       Navigator.pop(context);
-                      // TODO: Navigate to chat
+                      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+                      
+                      // Get or create conversation
+                      final conversation = await chatProvider.getOrCreateConversation(friend.userId);
+                      if (conversation != null && context.mounted) {
+                        final conversationId = conversation['id'] as int?;
+                        final otherUser = conversation['other_user'] as Map<String, dynamic>?;
+                        if (conversationId != null && otherUser != null) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChatDetailScreen(
+                                conversationId: conversationId,
+                                otherUser: otherUser,
+                              ),
+                            ),
+                          );
+                        }
+                      }
                     },
                     icon: const Icon(Icons.message, size: 18),
                     label: const Text('Message'),

@@ -15,5 +15,6 @@ class RouteNames {
   static const String meetingDetails = '/meeting-details';
   static const String createMeeting = '/create-meeting';
   static const String invitations = '/invitations';
+  static const String chatDetail = '/chat-detail';
 }
 
