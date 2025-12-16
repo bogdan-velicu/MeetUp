@@ -1,15 +1,33 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Colors
-  static const Color primaryColor = Color(0xFF6366F1); // Indigo
-  static const Color secondaryColor = Color(0xFF8B5CF6); // Purple
-  static const Color accentColor = Color(0xFF10B981); // Green
+  // Colors extracted from meetup_logo.png
+  // Primary: Dark Navy Blue from logo (#001830, #001B32, #00273B)
+  static const Color primaryColor = Color(0xFF001B32); // Main brand color - Dark Navy
+  static const Color primaryDark = Color(0xFF001830); // Darker variant
+  static const Color primaryLight = Color(0xFF00273B); // Lighter variant
+  static const Color secondaryColor = Color(0xFF3A5271); // Blue-gray from average
+  static const Color accentColor = Color(0xFF4A90E2); // Bright blue accent
+  static const Color successColor = Color(0xFF10B981); // Green
   static const Color errorColor = Color(0xFFEF4444); // Red
-  static const Color backgroundColor = Color(0xFFF9FAFB);
+  static const Color warningColor = Color(0xFFF59E0B); // Orange
+  static const Color backgroundColor = Color(0xFFF5F7FA); // Light gray
   static const Color surfaceColor = Colors.white;
-  static const Color textPrimary = Color(0xFF111827);
-  static const Color textSecondary = Color(0xFF6B7280);
+  static const Color textPrimary = Color(0xFF1A1F36); // Dark text
+  static const Color textSecondary = Color(0xFF6B7280); // Gray text
+  
+  // Gradient colors
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryColor, primaryLight, secondaryColor],
+  );
+  
+  static const LinearGradient accentGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [accentColor, Color(0xFF5BA3F5)],
+  );
 
   // Light Theme
   static ThemeData lightTheme = ThemeData(
@@ -20,6 +38,9 @@ class AppTheme {
       tertiary: accentColor,
       error: errorColor,
       surface: surfaceColor,
+      onPrimary: Colors.white,
+      onSecondary: Colors.white,
+      onSurface: textPrimary,
     ),
     scaffoldBackgroundColor: backgroundColor,
     appBarTheme: const AppBarTheme(

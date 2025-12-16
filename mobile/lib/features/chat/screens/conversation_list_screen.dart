@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../services/chat/chat_provider.dart';
+import '../../../core/widgets/app_logo.dart';
 import '../widgets/conversation_list_item.dart';
 import 'chat_detail_screen.dart';
 
@@ -27,8 +28,27 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppLogo(width: 28, height: 28),
+            const SizedBox(width: 12),
+            const Text('Chat'),
+          ],
+        ),
         automaticallyImplyLeading: false,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              ],
+            ),
+          ),
+        ),
       ),
       body: Consumer<ChatProvider>(
         builder: (context, provider, child) {

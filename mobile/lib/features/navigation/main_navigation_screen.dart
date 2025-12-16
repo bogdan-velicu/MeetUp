@@ -18,6 +18,7 @@ class MainNavigationScreen extends StatefulWidget {
 class MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 2; // Start at Map (center)
   final GlobalKey<MapScreenState> _mapScreenKey = GlobalKey<MapScreenState>();
+  final PageController _pageController = PageController(initialPage: 2);
 
   late final List<Widget> _screens;
 
@@ -33,6 +34,12 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
     ];
   }
 
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   MapScreenState? getMapScreenState() {
     return _mapScreenKey.currentState;
   }
@@ -43,7 +50,12 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
     debugPrint('Current tab index: $_currentIndex');
     debugPrint('Map screen key current state: ${_mapScreenKey.currentState}');
     
-    // Switch to map tab first
+    // Switch to map tab first with animation
+    _pageController.animateToPage(
+      2,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
     setState(() {
       _currentIndex = 2; // Switch to map tab
     });
@@ -78,10 +90,14 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Full screen content
-          IndexedStack(
-            index: _currentIndex,
-            children: _screens,
+          // Full screen content with horizontal slide animation
+          PageView.builder(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(), // Disable manual swipe
+            itemCount: _screens.length,
+            itemBuilder: (context, index) {
+              return _screens[index];
+            },
           ),
           // Floating bottom navigation
           Positioned(
@@ -202,6 +218,12 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _onTabTapped(int index) {
     if (_currentIndex != index) {
+      // Animate to the new page with horizontal slide
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
       setState(() {
         _currentIndex = index;
       });
