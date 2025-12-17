@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/utils/route_names.dart';
 import '../../../core/utils/navigation_service.dart';
 import '../../../services/auth/auth_provider.dart';
@@ -25,6 +26,33 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _loadCurrentUrl();
+    _loadLastUsername();
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    // Wait for auth check to complete
+    while (authProvider.isLoading) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    
+    if (mounted && authProvider.isAuthenticated) {
+      NavigationService.navigateToAndRemoveUntil(RouteNames.home);
+    }
+  }
+
+  Future<void> _loadLastUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastUsername = prefs.getString('last_username');
+    if (lastUsername != null && mounted) {
+      _emailOrUsernameController.text = lastUsername;
+    }
+  }
+
+  Future<void> _saveLastUsername(String username) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('last_username', username);
   }
 
   Future<void> _loadCurrentUrl() async {
@@ -48,6 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final identifier = _emailOrUsernameController.text.trim();
+    
+    // Save username for next time
+    await _saveLastUsername(identifier);
+    
     final success = await authProvider.login(
       identifier,
       _passwordController.text,
@@ -109,6 +141,52 @@ class _LoginScreenState extends State<LoginScreen> {
                   _urlController.text = AppConstants.baseUrl;
                 },
                 child: const Text('Reset to Default'),
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 8),
+              const Text(
+                'Demo Mode:',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Bypass login and explore the app with demo data',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () async {
+                  Navigator.pop(context, false);
+                  final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                  final success = await authProvider.enableDemoMode();
+                  
+                  if (mounted) {
+                    if (success) {
+                      NavigationService.navigateToAndRemoveUntil(RouteNames.home);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Demo mode enabled! Exploring app with demo data.'),
+                          backgroundColor: Colors.green,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(authProvider.error ?? 'Failed to enable demo mode'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('Enter Demo Mode'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blue,
+                  side: const BorderSide(color: Colors.blue),
+                ),
               ),
             ],
           ),
@@ -199,6 +277,7 @@ class _LoginScreenState extends State<LoginScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           title: const Text('Login'),
         ),
         body: SafeArea(

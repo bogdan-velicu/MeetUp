@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'route_names.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
-import '../../features/splash/splash_screen.dart';
+// import '../../features/splash/splash_screen.dart'; // Commented out for now
 import '../../features/navigation/main_navigation_screen.dart';
 import '../../features/friends/add_friend_screen.dart';
 import '../../features/friends/friend_requests_screen.dart';
@@ -10,8 +10,8 @@ import '../../features/friends/friend_requests_screen.dart';
 class RouteGenerator {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case RouteNames.splash:
-        return MaterialPageRoute(builder: (_) => const SplashScreen());
+      // case RouteNames.splash:
+      //   return MaterialPageRoute(builder: (_) => const SplashScreen());
       
       case RouteNames.login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());

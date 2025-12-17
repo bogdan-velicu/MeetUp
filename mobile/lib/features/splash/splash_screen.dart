@@ -43,21 +43,23 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.primary.withOpacity(0.7),
+              Color(0xFFE0E0E0), // Darker gray top (like profile page)
+              Color(0xFFD0D0D0),
+              Color(0xFFF5F5F5), // Lighter gray bottom
             ],
+            stops: [0.0, 0.3, 1.0],
           ),
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App Logo with animation
+              // App Logo with animation and rounded corners
               TweenAnimationBuilder<double>(
                 tween: Tween(begin: 0.0, end: 1.0),
                 duration: const Duration(milliseconds: 800),
@@ -71,20 +73,24 @@ class _SplashScreenState extends State<SplashScreen> {
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          shape: BoxShape.circle,
+                          borderRadius: BorderRadius.circular(24), // Rounded corners
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withOpacity(0.15),
                               blurRadius: 30,
                               offset: const Offset(0, 10),
+                              spreadRadius: 0,
                             ),
                           ],
                         ),
-                        child: Image.asset(
-                          'assets/images/meetup_logo.png',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.contain,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4), // Slight rounding on logo itself
+                          child: Image.asset(
+                            'assets/images/meetup_logo.png',
+                            width: 120,
+                            height: 120,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),
@@ -106,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Color(0xFF1A1A1A), // Dark text for contrast
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -116,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
               const SizedBox(height: 48),
               const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1A1A1A)), // Dark color
               ),
             ],
           ),

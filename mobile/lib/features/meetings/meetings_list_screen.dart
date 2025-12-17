@@ -74,56 +74,40 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CreateMeetingScreen(),
-                ),
-              ).then((_) => _loadMeetings());
-            },
-          ),
-        ],
-      ),
       body: Column(
         children: [
-          // Filter chips
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  _buildFilterChip('all', 'All'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('upcoming', 'Upcoming'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('past', 'Past'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('organized', 'Organized'),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('invited', 'Invited'),
+          // Filter chips with soft shadows and SafeArea for status bar
+          SafeArea(
+            bottom: false,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                    spreadRadius: 0,
+                  ),
                 ],
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    _buildFilterChip('all', 'All'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('upcoming', 'Upcoming'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('past', 'Past'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('organized', 'Organized'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('invited', 'Invited'),
+                  ],
+                ),
               ),
             ),
           ),
@@ -174,7 +158,7 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
                         : RefreshIndicator(
                             onRefresh: _loadMeetings,
                             child: ListView.builder(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Extra bottom padding for FAB and nav
                               itemCount: _meetings.length,
                               itemBuilder: (context, index) {
                                 final meeting = _meetings[index];
@@ -185,6 +169,20 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CreateMeetingScreen(),
+            ),
+          ).then((_) => _loadMeetings());
+        },
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+        elevation: 4,
+      ),
+      floatingActionButtonLocation: _CustomFloatingActionButtonLocation(),
     );
   }
 
@@ -196,9 +194,22 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
       onSelected: (selected) => _onFilterChanged(filter),
       selectedColor: Theme.of(context).primaryColor.withOpacity(0.2),
       checkmarkColor: Theme.of(context).primaryColor,
+      backgroundColor: Colors.grey[100],
       labelStyle: TextStyle(
         color: isSelected ? Theme.of(context).primaryColor : Colors.grey[700],
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+      ),
+      side: BorderSide(
+        color: isSelected 
+            ? Theme.of(context).primaryColor.withOpacity(0.3)
+            : Colors.grey.withOpacity(0.2),
+        width: 1,
+      ),
+      elevation: isSelected ? 2 : 0,
+      shadowColor: Colors.black.withOpacity(0.1),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
       ),
     );
   }
@@ -206,13 +217,27 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
   Widget _buildMeetingCard(Meeting meeting) {
     final statusColor = _getStatusColor(meeting.status);
     
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+            spreadRadius: 0,
+          ),
+        ],
       ),
-      child: InkWell(
+      child: Card(
+        elevation: 0,
+        color: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: InkWell(
         onTap: () => _onMeetingTap(meeting),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -305,6 +330,7 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -347,5 +373,26 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
     final displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
     return '${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
   }
+}
+
+// Custom FAB location that positions above the bottom navigation bar
+class _CustomFloatingActionButtonLocation extends FloatingActionButtonLocation {
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    // Position at the end (right side)
+    final double endX = scaffoldGeometry.scaffoldSize.width - 
+        scaffoldGeometry.floatingActionButtonSize.width - 
+        16.0; // 16px from right edge
+    
+    // Position above the bottom nav bar (accounting for nav bar height ~80px + safe area)
+    final double bottomY = scaffoldGeometry.scaffoldSize.height - 
+        scaffoldGeometry.floatingActionButtonSize.height - 
+        100.0; // 100px from bottom to clear the nav bar
+    
+    return Offset(endX, bottomY);
+  }
+
+  @override
+  String toString() => 'FloatingActionButtonLocation.custom';
 }
 

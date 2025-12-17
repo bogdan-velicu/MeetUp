@@ -42,7 +42,7 @@ void main() async {
   
   // Initialize auth service to check for stored token
   final authService = AuthService();
-  authService.getToken().then((token) {
+  await authService.getToken().then((token) {
     if (token != null) {
       authService.apiClient.setAuthToken(token);
     }
@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
         title: 'MeetUp!',
         theme: AppTheme.lightTheme,
         navigatorKey: NavigationService.navigatorKey,
-        initialRoute: RouteNames.splash,
+        initialRoute: RouteNames.login, // Will check auth and redirect if needed
         onGenerateRoute: RouteGenerator.generateRoute,
         debugShowCheckedModeBanner: false,
       ),

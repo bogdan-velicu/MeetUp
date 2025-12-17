@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import '../../../core/theme/app_theme.dart';
 
 class LocationPickerModal extends StatefulWidget {
   final LatLng? initialPosition;
@@ -23,8 +25,14 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
   String? _selectedAddress;
   bool _isSearching = false;
   bool _isLoadingAddress = false;
+  bool _showBottomInfo = true;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+  Timer? _hideInfoTimer;
+  List<Placemark> _addressSuggestions = [];
+  bool _showSuggestions = false;
+  bool _isLoadingSuggestions = false;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -34,10 +42,20 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
     if (_selectedPosition == null) {
       _getCurrentLocation();
     }
+    // Hide bottom info after 5 seconds
+    _hideInfoTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showBottomInfo = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _hideInfoTimer?.cancel();
+    _debounceTimer?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     _mapController?.dispose();
@@ -90,6 +108,65 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
         _selectedAddress = '${position.latitude}, ${position.longitude}';
         _isLoadingAddress = false;
       });
+    }
+  }
+
+  Future<void> _searchAddressSuggestions(String query) async {
+    if (query.trim().length < 4) {
+      setState(() {
+        _showSuggestions = false;
+        _addressSuggestions = [];
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingSuggestions = true;
+      _showSuggestions = true;
+    });
+
+    try {
+      // Use geocoding to get address suggestions
+      final locations = await locationFromAddress(query);
+      if (locations.isNotEmpty && mounted) {
+        // Get placemarks for each location to show full addresses
+        final List<Placemark> placemarks = [];
+        for (final location in locations.take(5)) { // Limit to 5 suggestions
+          try {
+            final marks = await placemarkFromCoordinates(
+              location.latitude,
+              location.longitude,
+            );
+            if (marks.isNotEmpty) {
+              placemarks.add(marks.first);
+            }
+          } catch (e) {
+            debugPrint('Error getting placemark: $e');
+          }
+        }
+        
+        if (mounted) {
+          setState(() {
+            _addressSuggestions = placemarks;
+            _isLoadingSuggestions = false;
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _addressSuggestions = [];
+            _isLoadingSuggestions = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error searching address suggestions: $e');
+      if (mounted) {
+        setState(() {
+          _addressSuggestions = [];
+          _isLoadingSuggestions = false;
+        });
+      }
     }
   }
 
@@ -169,10 +246,228 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
+    // Apply custom map style
+    _applyMapStyle(controller);
     if (_selectedPosition != null) {
       controller.animateCamera(
         CameraUpdate.newLatLngZoom(_selectedPosition!, 15.0),
       );
+    }
+  }
+
+  void _applyMapStyle(GoogleMapController controller) async {
+    // Custom map style - minimalist gray theme (same as main map)
+    const String mapStyle = '''
+    [
+      {
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#f5f5f5"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.icon",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#616161"
+          }
+        ]
+      },
+      {
+        "elementType": "labels.text.stroke",
+        "stylers": [
+          {
+            "color": "#f5f5f5"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.land_parcel",
+        "elementType": "labels",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "administrative.land_parcel",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#bdbdbd"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#eeeeee"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "labels.text",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "poi",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#757575"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.business",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#e5e5e5"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "labels.text",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "poi.park",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#9e9e9e"
+          }
+        ]
+      },
+      {
+        "featureType": "road",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#ffffff"
+          }
+        ]
+      },
+      {
+        "featureType": "road.arterial",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#757575"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#dadada"
+          }
+        ]
+      },
+      {
+        "featureType": "road.highway",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#616161"
+          }
+        ]
+      },
+      {
+        "featureType": "road.local",
+        "elementType": "labels",
+        "stylers": [
+          {
+            "visibility": "off"
+          }
+        ]
+      },
+      {
+        "featureType": "road.local",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#9e9e9e"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.line",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#e5e5e5"
+          }
+        ]
+      },
+      {
+        "featureType": "transit.station",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#eeeeee"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "geometry",
+        "stylers": [
+          {
+            "color": "#c9c9c9"
+          }
+        ]
+      },
+      {
+        "featureType": "water",
+        "elementType": "labels.text.fill",
+        "stylers": [
+          {
+            "color": "#9e9e9e"
+          }
+        ]
+      }
+    ]
+    ''';
+    
+    try {
+      await controller.setMapStyle(mapStyle);
+    } catch (e) {
+      debugPrint('Error applying map style: $e');
     }
   }
 
@@ -204,10 +499,12 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
             ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // Search bar
-          Container(
+          Column(
+            children: [
+              // Search bar
+              Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -255,10 +552,25 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
                     onSubmitted: (value) {
                       if (value.trim().isNotEmpty) {
                         _searchAddress(value);
+                        setState(() {
+                          _showSuggestions = false;
+                        });
                       }
                     },
                     onChanged: (value) {
-                      // Search query changed, but we only search on submit
+                      setState(() {});
+                      // Debounce address suggestions
+                      _debounceTimer?.cancel();
+                      if (value.trim().length >= 4) {
+                        _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+                          _searchAddressSuggestions(value);
+                        });
+                      } else {
+                        setState(() {
+                          _showSuggestions = false;
+                          _addressSuggestions = [];
+                        });
+                      }
                     },
                   ),
                 ),
@@ -272,26 +584,30 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
             ),
           ),
 
-          // Selected address display
+          // Selected address display with monochrome theme (always visible)
           if (_selectedAddress != null || _isLoadingAddress)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: Colors.blue[50],
+              color: AppTheme.backgroundColor,
               child: Row(
                 children: [
-                  const Icon(Icons.location_on, color: Colors.blue, size: 20),
+                  Icon(Icons.location_on, color: AppTheme.primaryColor, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: _isLoadingAddress
-                        ? const Text(
+                        ? Text(
                             'Loading address...',
-                            style: TextStyle(fontSize: 14),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.textSecondary,
+                            ),
                           )
                         : Text(
                             _selectedAddress!,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                   ),
@@ -299,83 +615,157 @@ class _LocationPickerModalState extends State<LocationPickerModal> {
               ),
             ),
 
-          // Map
-          Expanded(
-            child: Stack(
-              children: [
-                if (_selectedPosition != null)
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: _selectedPosition!,
-                      zoom: 15.0,
-                    ),
-                    onMapCreated: _onMapCreated,
-                    onTap: _onMapTap,
-                    markers: _selectedPosition != null
-                        ? {
-                            Marker(
-                              markerId: const MarkerId('selected_location'),
-                              position: _selectedPosition!,
-                              icon: BitmapDescriptor.defaultMarkerWithHue(
-                                BitmapDescriptor.hueRed,
+          // Address suggestions dropdown
+          if (_showSuggestions)
+            Container(
+              constraints: const BoxConstraints(maxHeight: 200),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: _isLoadingSuggestions
+                  ? const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    )
+                  : _addressSuggestions.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Center(
+                            child: Text('No suggestions found'),
+                          ),
+                        )
+                      : ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: _addressSuggestions.length,
+                          itemBuilder: (context, index) {
+                            final placemark = _addressSuggestions[index];
+                            final address = _formatAddress(placemark);
+                            return ListTile(
+                              leading: Icon(Icons.location_on, color: AppTheme.primaryColor, size: 20),
+                              title: Text(
+                                address,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppTheme.textPrimary,
+                                ),
                               ),
-                            ),
-                          }
-                        : {},
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: false,
-                    mapType: MapType.normal,
-                    zoomControlsEnabled: false,
-                    compassEnabled: false,
-                    mapToolbarEnabled: false,
-                  )
-                else
-                  const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                              onTap: () async {
+                                try {
+                                  final location = await locationFromAddress(address);
+                                  if (location.isNotEmpty) {
+                                    final position = LatLng(location.first.latitude, location.first.longitude);
+                                    setState(() {
+                                      _selectedPosition = position;
+                                      _selectedAddress = address;
+                                      _showSuggestions = false;
+                                      _searchController.text = address;
+                                    });
+                                    _mapController?.animateCamera(
+                                      CameraUpdate.newLatLngZoom(position, 15.0),
+                                    );
+                                  }
+                                } catch (e) {
+                                  debugPrint('Error selecting suggestion: $e');
+                                }
+                              },
+                            );
+                          },
+                        ),
+            ),
 
-                // Center indicator
-                const Center(
-                  child: Icon(
-                    Icons.place,
-                    color: Colors.red,
-                    size: 40,
-                  ),
+              // Map
+              Expanded(
+                child: Stack(
+                  children: [
+                    if (_selectedPosition != null)
+                      GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: _selectedPosition!,
+                          zoom: 15.0,
+                        ),
+                        onMapCreated: _onMapCreated,
+                        onTap: _onMapTap,
+                        markers: _selectedPosition != null
+                            ? {
+                                Marker(
+                                  markerId: const MarkerId('selected_location'),
+                                  position: _selectedPosition!,
+                                  icon: BitmapDescriptor.defaultMarkerWithHue(
+                                    BitmapDescriptor.hueRed,
+                                  ),
+                                ),
+                              }
+                            : {},
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        mapType: MapType.normal,
+                        zoomControlsEnabled: false,
+                        compassEnabled: false,
+                        mapToolbarEnabled: false,
+                      )
+                    else
+                      const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                  ],
                 ),
-
-                // Instructions
-                Positioned(
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
+              ),
+            ],
+          ),
+          // Bottom info panel - positioned at the bottom of the entire page
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: AnimatedSlide(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                offset: _showBottomInfo ? Offset.zero : const Offset(0, 1),
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 300),
+                  opacity: _showBottomInfo ? 1.0 : 0.0,
                   child: Container(
+                    margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
+                          color: Colors.black.withOpacity(0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.info_outline, size: 20, color: Colors.blue),
-                        SizedBox(width: 8),
+                        Icon(Icons.info_outline, size: 20, color: AppTheme.primaryColor),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'Tap on the map or search to select a location',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ],

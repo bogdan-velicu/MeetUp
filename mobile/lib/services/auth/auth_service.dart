@@ -148,5 +148,29 @@ class AuthService {
   Future<void> logout() async {
     await clearTokens();
   }
+  
+  // Demo mode - bypass login with demo user data
+  Future<Map<String, dynamic>> enableDemoMode() async {
+    // Create demo user data with arbitrary values
+    final demoUser = {
+      'id': 999,
+      'username': 'demo_user',
+      'email': 'demo@meetup.app',
+      'full_name': 'Demo User',
+      'phone_number': '+1234567890',
+      'profile_photo_url': null,
+      'points': 150,
+      'is_demo': true,
+    };
+    
+    // Save a demo token (just a placeholder string)
+    final demoToken = 'demo_token_${DateTime.now().millisecondsSinceEpoch}';
+    await saveToken(demoToken);
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(AppConstants.userIdKey, demoUser['id'] as int);
+    
+    return {'success': true, 'user': demoUser, 'token': demoToken};
+  }
 }
 

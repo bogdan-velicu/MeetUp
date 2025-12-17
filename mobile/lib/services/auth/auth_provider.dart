@@ -133,5 +133,32 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
     }
   }
+  
+  // Enable demo mode - bypass login with demo user
+  Future<bool> enableDemoMode() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
+    final result = await _authService.enableDemoMode();
+    
+    _isLoading = false;
+    
+    if (result['success'] == true) {
+      _currentUser = result['user'];
+      _isAuthenticated = true;
+      _error = null;
+      notifyListeners();
+      
+      // Note: We skip location updates in demo mode to avoid errors
+      
+      return true;
+    } else {
+      _error = result['error'] ?? 'Failed to enable demo mode';
+      _isAuthenticated = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
 

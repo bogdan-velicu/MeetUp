@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth/auth_provider.dart';
 import '../../core/constants/app_constants.dart';
-import 'widgets/location_settings_widget.dart';
+import 'widgets/expandable_location_settings_item.dart';
 import 'points_history_screen.dart';
 import '../shake/shake_to_meetup_screen.dart';
 
@@ -161,14 +161,6 @@ class ProfileScreen extends StatelessWidget {
         
         // Settings Section
         _buildSettingsSection(context, user),
-        
-        const SizedBox(height: 24),
-        
-        // Location Settings
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: LocationSettingsWidget(),
-        ),
         
         const SizedBox(height: 24),
         
@@ -420,6 +412,8 @@ class ProfileScreen extends StatelessWidget {
                   },
                 ),
                 _buildDivider(),
+                _buildExpandableLocationSettings(context),
+                _buildDivider(),
                 _buildModernMenuItem(
                   context,
                   icon: Icons.help_outline_rounded,
@@ -511,6 +505,10 @@ class ProfileScreen extends StatelessWidget {
         color: Colors.grey[200],
       ),
     );
+  }
+
+  Widget _buildExpandableLocationSettings(BuildContext context) {
+    return const ExpandableLocationSettingsItem();
   }
 
   Widget _buildLogoutButton(BuildContext context, AuthProvider authProvider) {

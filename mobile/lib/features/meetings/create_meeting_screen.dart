@@ -39,6 +39,9 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
       _selectedFriendIds = Set<int>.from(widget.preSelectedFriendIds!);
     }
     _loadFriends();
+    // Add listeners to update text color
+    _titleController.addListener(() => setState(() {}));
+    _descriptionController.addListener(() => setState(() {}));
   }
 
   @override
@@ -169,17 +172,55 @@ class _CreateMeetingScreenState extends State<CreateMeetingScreen> {
           children: [
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: 'Title (optional)',
+                prefixIcon: const Icon(Icons.title, color: Colors.black),
+                filled: false,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                hintStyle: const TextStyle(color: Colors.grey),
+              ),
+              style: TextStyle(
+                fontSize: 16,
+                color: _titleController.text.isEmpty ? Colors.grey : Colors.black,
               ),
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: 'Description (optional)',
+                prefixIcon: const Icon(Icons.description, color: Colors.black),
+                filled: false,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(4),
+                  borderSide: const BorderSide(color: Colors.grey),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                hintStyle: const TextStyle(color: Colors.grey),
+              ),
+              style: TextStyle(
+                fontSize: 16,
+                color: _descriptionController.text.isEmpty ? Colors.grey : Colors.black,
               ),
               maxLines: 3,
             ),
