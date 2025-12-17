@@ -6,6 +6,7 @@ import '../map/map_screen.dart';
 import '../profile/profile_screen.dart';
 import '../meetings/meetings_list_screen.dart';
 import '../../services/chat/chat_provider.dart';
+import '../../core/theme/app_theme.dart';
 import 'widgets/animated_bottom_nav_item.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 2; // Start at Map (center)
   final GlobalKey<MapScreenState> _mapScreenKey = GlobalKey<MapScreenState>();
   final PageController _pageController = PageController(initialPage: 2);
+  double _pageOffset = 2.0; // Track page scroll position for parallax
 
   late final List<Widget> _screens;
 
@@ -32,6 +34,15 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
       const MeetingsListScreen(),
       const ProfileScreen(),
     ];
+    
+    // Listen to page controller for parallax effect
+    _pageController.addListener(() {
+      if (_pageController.hasClients) {
+        setState(() {
+          _pageOffset = _pageController.page ?? _currentIndex.toDouble();
+        });
+      }
+    });
   }
 
   @override
@@ -90,13 +101,62 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
     return Scaffold(
       body: Stack(
         children: [
+          // Continuous gradient background with parallax effect
+          AnimatedBuilder(
+            animation: _pageController,
+            builder: (context, child) {
+              // Calculate current page and progress
+              final currentPage = _pageOffset.floor();
+              final progress = _pageOffset - currentPage;
+              
+              // Get interpolated gradient based on page position
+              LinearGradient gradient;
+              if (progress > 0 && currentPage < _screens.length - 1) {
+                gradient = AppTheme.getInterpolatedGradient(
+                  progress,
+                  currentPage,
+                  currentPage + 1,
+                );
+              } else {
+                gradient = AppTheme.pageGradients[
+                  currentPage.clamp(0, _screens.length - 1)
+                ];
+              }
+              
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: gradient,
+                ),
+              );
+            },
+          ),
           // Full screen content with horizontal slide animation
           PageView.builder(
             controller: _pageController,
             physics: const NeverScrollableScrollPhysics(), // Disable manual swipe
             itemCount: _screens.length,
             itemBuilder: (context, index) {
-              return _screens[index];
+              return AnimatedBuilder(
+                animation: _pageController,
+                builder: (context, child) {
+                  // Calculate scale and opacity based on distance from current page
+                  final pageOffset = _pageController.hasClients
+                      ? (_pageController.page ?? index.toDouble())
+                      : index.toDouble();
+                  final distance = (pageOffset - index).abs();
+                  final scale = (1 - distance * 0.05).clamp(0.95, 1.0);
+                  final opacity = (1 - distance * 0.3).clamp(0.7, 1.0);
+                  
+                  return Transform.scale(
+                    scale: scale,
+                    child: Opacity(
+                      opacity: opacity,
+                      child: child,
+                    ),
+                  );
+                },
+                child: _screens[index],
+              );
             },
           ),
           // Floating bottom navigation
@@ -113,7 +173,7 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
 
   Widget _buildFloatingBottomNav() {
     final activeColor = Theme.of(context).primaryColor;
-    final inactiveColor = Colors.grey.withOpacity(0.6);
+    final inactiveColor = AppTheme.textTertiary;
 
     return SafeArea(
       child: TweenAnimationBuilder<double>(
@@ -131,13 +191,14 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppTheme.surfaceColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
+                color: Colors.black.withOpacity(0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 5),
+                spreadRadius: 0,
               ),
             ],
           ),
@@ -218,15 +279,15 @@ class MainNavigationScreenState extends State<MainNavigationScreen> {
 
   void _onTabTapped(int index) {
     if (_currentIndex != index) {
-      // Animate to the new page with horizontal slide
-      _pageController.animateToPage(
-        index,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
       setState(() {
         _currentIndex = index;
       });
+      // Animate to the new page with smooth horizontal slide
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOutCubic,
+      );
     }
   }
 }

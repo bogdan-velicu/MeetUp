@@ -30,18 +30,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-        ),
+        scrolledUnderElevation: 0,
       ),
       body: Consumer<ChatProvider>(
         builder: (context, provider, child) {

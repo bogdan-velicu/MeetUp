@@ -22,7 +22,7 @@ class ProfileScreen extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: Colors.grey[50],
+          backgroundColor: Colors.transparent,
           body: CustomScrollView(
             slivers: [
               _buildSliverAppBar(context, user),
@@ -42,17 +42,17 @@ class ProfileScreen extends StatelessWidget {
       floating: false,
       pinned: true,
       automaticallyImplyLeading: false,
-      backgroundColor: Theme.of(context).primaryColor,
+      backgroundColor: Colors.transparent,
       elevation: 0,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Theme.of(context).primaryColor,
-                Theme.of(context).primaryColor.withOpacity(0.7),
+                Color(0xFFE0E0E0),
+                Color(0xFFD0D0D0),
               ],
             ),
           ),

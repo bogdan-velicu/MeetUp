@@ -78,19 +78,8 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -219,13 +208,13 @@ class _MeetingsListScreenState extends State<MeetingsListScreen> {
     
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: InkWell(
         onTap: () => _onMeetingTap(meeting),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(

@@ -265,19 +265,8 @@ class _MeetingDetailsScreenState extends State<MeetingDetailsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-        ),
         actions: _isOrganizer()
             ? [
                 IconButton(

@@ -56,19 +56,8 @@ class _FriendsScreenState extends State<FriendsScreen>
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
@@ -110,33 +99,21 @@ class _FriendsScreenState extends State<FriendsScreen>
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.center,
-            colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).primaryColor.withOpacity(0.1),
-            ],
-          ),
-        ),
-        child: FriendsListView(
-          key: ValueKey(_refreshKey),
-          onRefreshRequested: _refreshKey > 0 ? () {} : null,
-          onViewFriendOnMap: (friendId) {
-            // Find MainNavigationScreen from FriendsScreen context
-            final mainNav = context
-                .findAncestorStateOfType<MainNavigationScreenState>();
-            if (mainNav != null) {
-              mainNav.switchToMapAndFocusFriend(friendId);
-            } else {
-              debugPrint(
-                'ERROR: Could not find MainNavigationScreen from FriendsScreen',
-              );
-            }
-          },
-        ),
+      body: FriendsListView(
+        key: ValueKey(_refreshKey),
+        onRefreshRequested: _refreshKey > 0 ? () {} : null,
+        onViewFriendOnMap: (friendId) {
+          // Find MainNavigationScreen from FriendsScreen context
+          final mainNav = context
+              .findAncestorStateOfType<MainNavigationScreenState>();
+          if (mainNav != null) {
+            mainNav.switchToMapAndFocusFriend(friendId);
+          } else {
+            debugPrint(
+              'ERROR: Could not find MainNavigationScreen from FriendsScreen',
+            );
+          }
+        },
       ),
     );
   }
